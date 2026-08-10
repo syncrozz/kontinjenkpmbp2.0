@@ -418,7 +418,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-base sm:text-lg text-white font-display">
-                  Mod Pentadbir (Admin Mode)
+                  Admin Mode
                 </h3>
                 {isAdminLoggedIn && (
                   <span className="text-[10px] uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
@@ -426,25 +426,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-300">
-                Pengurusan Submisi Pendaftaran Bakat & Modifikasi Checklist Logistik SOAR 2026
-              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0 ml-2">
             {isAdminLoggedIn && (
               <button
                 onClick={handleLogout}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all border border-slate-700"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs sm:text-sm font-extrabold transition-all border border-rose-400/50 shadow-md shadow-rose-950/40 cursor-pointer shrink-0"
+                title="Log Keluar dari Mod Admin"
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Log Keluar</span>
+                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                <span className="whitespace-nowrap">Log Keluar</span>
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-all cursor-pointer"
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white transition-all cursor-pointer shrink-0"
+              title="Tutup Modal"
             >
               <X className="w-5 h-5" />
             </button>

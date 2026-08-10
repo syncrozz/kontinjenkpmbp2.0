@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-2 sm:gap-3 cursor-pointer group shrink-0"
           >
             <KpmbpLogo className="w-9 h-9 sm:w-11 sm:h-11 group-hover:scale-105 transition-transform drop-shadow-md shrink-0" />
-            <div>
+            <div className="flex flex-col justify-center">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <h1 className="font-display font-extrabold text-sm sm:text-lg text-slate-900 leading-none tracking-tight">
                   KONTINJEN KPMBP
@@ -57,45 +57,48 @@ export const Header: React.FC<HeaderProps> = ({
                   SOAR '26
                 </span>
               </div>
-              <p className="text-[10px] sm:text-xs text-blue-600 font-medium tracking-wide hidden sm:block">
+              <p className="text-[10px] sm:text-xs text-blue-600 font-medium tracking-wide hidden md:block mt-0.5">
                 Kolej Profesional MARA Bandar Penawar
               </p>
             </div>
           </div>
 
-          {/* Main Navigation Tabs */}
-          <nav className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-1">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
+          {/* Right Section: Desktop Nav Tabs & Admin Mode */}
+          <div className="flex items-center gap-2">
+            {/* Main Navigation Tabs (Desktop) */}
+            <nav className="hidden md:flex items-center gap-1 sm:gap-1.5 py-1">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
 
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  title={tab.label}
-                  className={`group relative h-9 px-3.5 flex items-center justify-center transition-all duration-300 cursor-pointer ${
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 rounded-xl font-bold'
-                      : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-xl font-semibold'
-                  }`}
-                >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span className={`whitespace-nowrap transition-all duration-300 ease-in-out ml-1.5 ${
-                    isActive ? 'block' : 'hidden lg:block'
-                  }`}>
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    title={tab.label}
+                    className={`group relative h-9 px-3.5 flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 rounded-xl font-bold'
+                        : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-xl font-semibold'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className={`whitespace-nowrap transition-all duration-300 ease-in-out ml-1.5 ${
+                      isActive ? 'block' : 'hidden lg:block'
+                    }`}>
+                      {tab.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
 
-            {/* Admin Mode button at the far right end */}
+            {/* Single Admin Mode button */}
             {onOpenAdmin && (
               <button
                 onClick={onOpenAdmin}
                 title="Mod Pentadbir (Admin Mode)"
-                className={`group relative h-9 px-3 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ml-auto shadow-xs ${
+                className={`group relative h-9 px-3 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-xs ${
                   isAdminLoggedIn
                     ? 'bg-emerald-600 text-white hover:bg-emerald-700 ring-2 ring-emerald-300/60'
                     : 'bg-slate-900 text-amber-300 hover:bg-slate-800 ring-2 ring-amber-400/40 hover:scale-102'
@@ -111,10 +114,8 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </button>
             )}
-          </nav>
+          </div>
         </div>
-
-
 
         {/* Row 3: Mobile Sub-Navigation Tabs Bar */}
         <div className="md:hidden border-t border-slate-100 py-1.5">
@@ -138,25 +139,6 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               );
             })}
-
-            {/* Mobile Admin Mode at the end */}
-            {onOpenAdmin && (
-              <button
-                onClick={onOpenAdmin}
-                className={`h-8 px-2.5 rounded-lg text-xs font-bold flex items-center gap-1 shrink-0 ml-auto transition-all cursor-pointer ${
-                  isAdminLoggedIn
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-slate-900 text-amber-300'
-                }`}
-              >
-                {isAdminLoggedIn ? (
-                  <Unlock className="w-3.5 h-3.5 text-emerald-200 shrink-0" />
-                ) : (
-                  <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                )}
-                <span className="whitespace-nowrap">Admin Mode</span>
-              </button>
-            )}
           </nav>
         </div>
       </div>
