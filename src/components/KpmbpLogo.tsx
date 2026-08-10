@@ -1,4 +1,5 @@
 import React from 'react';
+import { KPMBP_ASSETS } from '../constants/assets';
 
 interface KpmbpLogoProps {
   className?: string;
@@ -17,11 +18,12 @@ export const KpmbpLogo: React.FC<KpmbpLogoProps> = ({
 
   return (
     <img
-      src="/android-chrome-192x192.png"
+      src={KPMBP_ASSETS.logo192}
       alt={alt}
       className={`shrink-0 select-none object-contain ${rounded ? 'rounded-xl overflow-hidden' : ''} ${className}`}
       style={style}
     />
   );
 };
+
 
