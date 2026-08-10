@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="ogBg" cx="20%" cy="40%" r="90%">
+      <stop offset="0%" stop-color="#0066e6" />
+      <stop offset="50%" stop-color="#0038a8" />
+      <stop offset="85%" stop-color="#001a5e" />
+      <stop offset="100%" stop-color="#000e38" />
+    </radialGradient>
+
+    <!-- Cyan Glow -->
+    <linearGradient id="cyanGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00d2ff" stop-opacity="0" />
+      <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#00d2ff" stop-opacity="0" />
+    </linearGradient>
+
+    <linearGradient id="cyanText" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#7dd3fc" />
+    </linearGradient>
+
+    <!-- Pattern Dot Grid -->
+    <pattern id="dotPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#ffffff" fill-opacity="0.12" />
+    </pattern>
+
+    <!-- Big Logo Gradients -->
+    <radialGradient id="logoBg" cx="50%" cy="32%" r="68%">
+      <stop offset="0%" stop-color="#00a8ff" />
+      <stop offset="40%" stop-color="#0066e6" />
+      <stop offset="80%" stop-color="#002b80" />
+      <stop offset="100%" stop-color="#00184d" />
+    </radialGradient>
+
+    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="15" flood-color="#00071a" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <!-- Canvas Background -->
+  <rect width="1200" height="630" fill="url(#ogBg)" />
+
+  <!-- Dot Grid Pattern Top Right -->
+  <rect x="800" y="0" width="400" height="200" fill="url(#dotPattern)" opacity="0.6" />
+
+  <!-- Curved Decorative Background Waves -->
+  <path d="M 650 0 C 850 150, 950 400, 1200 630 L 1200 0 Z" fill="#ffffff" fill-opacity="0.05" />
+  <path d="M 750 0 C 920 180, 1020 420, 1200 580 L 1200 0 Z" fill="#ffffff" fill-opacity="0.08" />
+
+  <!-- Building Silhouette Abstract Backdrop Right -->
+  <g opacity="0.15" fill="#ffffff">
+    <rect x="1050" y="100" width="120" height="300" rx="4" />
+    <rect x="1070" y="120" width="20" height="20" rx="2" />
+    <rect x="1100" y="120" width="20" height="20" rx="2" />
+    <rect x="1130" y="120" width="20" height="20" rx="2" />
+    <rect x="1070" y="160" width="20" height="20" rx="2" />
+    <rect x="1100" y="160" width="20" height="20" rx="2" />
+    <rect x="1130" y="160" width="20" height="20" rx="2" />
+  </g>
+
+  <!-- Main Left Content Group -->
+  <g transform="translate(60, 0)">
+
+    <!-- MAIN TITLE -->
+    <text x="0" y="240" fill="#ffffff" font-family="'Lexend', 'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="78" letter-spacing="4">
+      KONTINJEN
+    </text>
+
+    <!-- SUBTITLE & CYAN ACCENT LINE -->
+    <line x1="30" y1="280" x2="110" y2="280" stroke="#38bdf8" stroke-width="6" stroke-linecap="round" />
+    <text x="125" y="292" fill="url(#cyanText)" font-family="'Lexend', 'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="48" letter-spacing="8">
+      KPMBP
+    </text>
+    <line x1="480" y1="280" x2="560" y2="280" stroke="#38bdf8" stroke-width="6" stroke-linecap="round" />
+
+    <!-- MOTTO -->
+    <text x="300" y="340" text-anchor="middle" fill="#ffffff" font-family="'Lexend', 'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="22" letter-spacing="6">
+      BERSATU  •  BERAKSI  •  BERJAYA
+    </text>
+
+    <!-- Glowing Divider -->
+    <line x1="0" y1="365" x2="600" y2="365" stroke="url(#cyanGlow)" stroke-width="2" />
+
+    <!-- 4 CORE VALUE PILLARS -->
+    <!-- 1. BERSATU -->
+    <g transform="translate(10, 395)">
+      <!-- Users Icon SVG -->
+      <circle cx="30" cy="20" r="18" fill="#0284c7" opacity="0.3" />
+      <path d="M22 18 a5 5 0 1 0 0-10 a5 5 0 0 0 0 10 z M38 18 a5 5 0 1 0 0-10 a5 5 0 0 0 0 10 z M22 23 c-6 0-11 4-11 8 h22 c0-4-5-8-11-8 z M38 23 c-2 0-4 1-6 2 c3 2 4 5 4 6 h10 c0-4-4-8-8-8 z" fill="#38bdf8" />
+      <text x="30" y="52" text-anchor="middle" fill="#ffffff" font-family="'Lexend', sans-serif" font-weight="800" font-size="16" letter-spacing="1">BERSATU</text>
+      <text x="30" y="68" text-anchor="middle" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="12">Kekuatan Kita</text>
+    </g>
+
+    <!-- 2. BERAKSI -->
+    <g transform="translate(160, 395)">
+      <!-- Runner Icon -->
+      <circle cx="30" cy="20" r="18" fill="#0284c7" opacity="0.3" />
+      <path d="M32 12 a3 3 0 1 0 0-6 a3 3 0 0 0 0 6 z M22 18 l5-3 l5 4 l6-3 M25 21 l-4 9 M29 25 l5 8" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+      <text x="30" y="52" text-anchor="middle" fill="#ffffff" font-family="'Lexend', sans-serif" font-weight="800" font-size="16" letter-spacing="1">BERAKSI</text>
+      <text x="30" y="68" text-anchor="middle" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="12">Tindakan Kita</text>
+    </g>
+
+    <!-- 3. BERJAYA -->
+    <g transform="translate(310, 395)">
+      <!-- Trophy Icon -->
+      <circle cx="30" cy="20" r="18" fill="#0284c7" opacity="0.3" />
+      <path d="M20 12 h20 v10 a10 10 0 0 1 -20 0 z M16 12 h4 v6 h-4 z M40 12 h4 v6 h-4 z M30 32 v6 M22 38 h16" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" fill="none" />
+      <text x="30" y="52" text-anchor="middle" fill="#ffffff" font-family="'Lexend', sans-serif" font-weight="800" font-size="16" letter-spacing="1">BERJAYA</text>
+      <text x="30" y="68" text-anchor="middle" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="12">Kejayaan Kita</text>
+    </g>
+
+    <!-- 4. BERINOVASI -->
+    <g transform="translate(460, 395)">
+      <!-- Target/Bullseye Icon -->
+      <circle cx="30" cy="20" r="18" fill="#0284c7" opacity="0.3" />
+      <circle cx="30" cy="20" r="12" stroke="#38bdf8" stroke-width="2.5" fill="none" />
+      <circle cx="30" cy="20" r="6" stroke="#38bdf8" stroke-width="2.5" fill="none" />
+      <circle cx="30" cy="20" r="2" fill="#38bdf8" />
+      <text x="30" y="52" text-anchor="middle" fill="#ffffff" font-family="'Lexend', sans-serif" font-weight="800" font-size="16" letter-spacing="1">BERINOVASI</text>
+      <text x="30" y="68" text-anchor="middle" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="12">Masa Depan Kita</text>
+    </g>
+
+  </g>
+
+  <!-- RIGHT CIRCULAR LOGO EMBLEM -->
+  <g transform="translate(900, 290)" filter="url(#dropShadow)">
+    <!-- Outer Glow Ring -->
+    <circle cx="0" cy="0" r="225" fill="#38bdf8" opacity="0.15" />
+    <circle cx="0" cy="0" r="210" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.8" />
+    
+    <!-- Logo Badge Circle -->
+    <circle cx="0" cy="0" r="200" fill="url(#logoBg)" />
+
+    <!-- K Monogram & Figures Inside Logo -->
+    <g transform="scale(0.8) translate(-256, -256)">
+      <path d="M 200 98 L 252 98 L 190 318 L 138 318 Z" fill="#ffffff" />
+      <path d="M 215 228 L 378 148 L 282 250 Z" fill="#ffffff" />
+      <circle cx="282" cy="154" r="25" fill="#ffffff" />
+      <path d="M 240 255 L 305 320 L 216 286 Z" fill="#ffffff" fill-opacity="0.95" />
+      <path d="M 126 326 C 210 382, 310 378, 412 236 C 322 340, 208 338, 126 326 Z" fill="#ffffff" />
+
+      <text x="256" y="410" text-anchor="middle" fill="#ffffff" font-family="'Lexend', sans-serif" font-weight="900" font-size="44" letter-spacing="2">KONTINJEN</text>
+      <line x1="135" y1="440" x2="190" y2="440" stroke="#38bdf8" stroke-width="4.5" stroke-linecap="round" />
+      <text x="256" y="447" text-anchor="middle" fill="#38bdf8" font-family="'Lexend', sans-serif" font-weight="800" font-size="28" letter-spacing="6">KPMBP</text>
+      <line x1="322" y1="440" x2="377" y2="440" stroke="#38bdf8" stroke-width="4.5" stroke-linecap="round" />
+    </g>
+  </g>
+
+  <!-- BOTTOM FOOTER BAR -->
+  <g transform="translate(40, 525)">
+    <!-- Rounded Pill Container -->
+    <rect x="0" y="0" width="1120" height="65" rx="16" fill="#001440" fill-opacity="0.9" stroke="#0284c7" stroke-width="1.5" />
+
+    <!-- Pillar 1: KPMBP -->
+    <g transform="translate(30, 20)">
+      <path d="M12 2 C8 2 5 5 5 9 c0 5 7 11 7 11 s7-6 7-11 c0-4-3-7-7-7 z M12 11 a2 2 0 1 1 0-4 a2 2 0 0 1 0 4 z" fill="#00d2ff" />
+      <text x="32" y="15" fill="#ffffff" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="14">Kolej Profesional MARA</text>
+      <text x="32" y="32" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="12">Bandar Penawar</text>
+    </g>
+
+    <line x1="290" y1="15" x2="290" y2="50" stroke="#1e3a8a" stroke-width="2" />
+
+    <!-- Pillar 2: Integriti -->
+    <g transform="translate(320, 20)">
+      <path d="M12 2 L3 6 v6 c0 5.5 3.8 10.7 9 12 c5.2-1.3 9-6.5 9-12 V6 L12 2 z M10 15 l-3-3 l1.4-1.4 l1.6 1.6 l4.6-4.6 L16 9 l-6 6 z" fill="#00d2ff" />
+      <text x="32" y="15" fill="#ffffff" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="14">Integriti</text>
+      <text x="32" y="32" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="12">Keunggulan</text>
+    </g>
+
+    <line x1="530" y1="15" x2="530" y2="50" stroke="#1e3a8a" stroke-width="2" />
+
+    <!-- Pillar 3: Profesionalisme -->
+    <g transform="translate(560, 20)">
+      <path d="M12 2 l2.8 6.5 h6.7 l-5.2 4.2 l1.9 6.8 L12 15.3 L6.8 19.5 l1.9-6.8 L3.5 8.5 h6.7 Z" fill="#00d2ff" />
+      <text x="32" y="15" fill="#ffffff" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="14">Profesionalisme</text>
+      <text x="32" y="32" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="12">Kecemerlangan</text>
+    </g>
+
+    <line x1="780" y1="15" x2="780" y2="50" stroke="#1e3a8a" stroke-width="2" />
+
+    <!-- Pillar 4: Bersama Membina -->
+    <g transform="translate(810, 20)">
+      <circle cx="12" cy="12" r="10" stroke="#00d2ff" stroke-width="2" fill="none" />
+      <line x1="2" y1="12" x2="22" y2="12" stroke="#00d2ff" stroke-width="1.5" />
+      <path d="M12 2 C16 6 16 18 12 22 C8 18 8 6 12 2 Z" stroke="#00d2ff" stroke-width="1.5" fill="none" />
+      <text x="32" y="15" fill="#ffffff" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="14">Bersama Membina</text>
+      <text x="32" y="32" fill="#94a3b8" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="12">Komuniti Cemerlang</text>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,40 @@
+{
+  "entities": [
+    {
+      "name": "talent_submissions",
+      "fields": [
+        { "name": "namaPenuh", "type": "string", "required": true },
+        { "name": "noIc", "type": "string", "required": false },
+        { "name": "noIdPelajar", "type": "string", "required": true },
+        { "name": "programPengajian", "type": "string", "required": false },
+        { "name": "semester", "type": "string", "required": false },
+        { "name": "noTelefon", "type": "string", "required": false },
+        { "name": "email", "type": "string", "required": false },
+        { "name": "acaraDiminati", "type": "array", "required": false },
+        { "name": "bakatUtama", "type": "string", "required": false },
+        { "name": "ringkasanBakat", "type": "string", "required": false },
+        { "name": "tempohPenglibatan", "type": "string", "required": false },
+        { "name": "pernahPertandingan", "type": "string", "required": false },
+        { "name": "namaPertandingan", "type": "string", "required": false },
+        { "name": "tahunPertandingan", "type": "string", "required": false },
+        { "name": "peringkatPertandingan", "type": "string", "required": false },
+        { "name": "pencapaianPertandingan", "type": "string", "required": false },
+        { "name": "pernahMewakili", "type": "array", "required": false },
+        { "name": "ceritaPengalaman", "type": "string", "required": false },
+        { "name": "linkVideo", "type": "string", "required": false },
+        { "name": "linkSosial", "type": "string", "required": false },
+        { "name": "submittedAt", "type": "string", "required": true }
+      ]
+    },
+    {
+      "name": "soar_checklist",
+      "fields": [
+        { "name": "id", "type": "string", "required": true },
+        { "name": "title", "type": "string", "required": true },
+        { "name": "category", "type": "string", "required": true },
+        { "name": "targetRole", "type": "string", "required": true },
+        { "name": "completed", "type": "boolean", "required": true }
+      ]
+    }
+  ]
+}

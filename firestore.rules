@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /talent_submissions/{docId} {
+      allow read, write: if true;
+    }
+    match /soar_checklist/{docId} {
+      allow read, write: if true;
+    }
+  }
+}
