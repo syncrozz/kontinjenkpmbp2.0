@@ -474,3 +474,42 @@ export const RULES_GUIDELINES: RuleGuideline[] = [
     ]
   }
 ];
+
+export function getEventDeadlines(event: EventDetail): { label: string; dueDate: string; requirement?: string }[] {
+  let allDeadlines: SubmissionDeadlineItem[] = SUBMISSION_DEADLINES;
+  try {
+    const saved = localStorage.getItem('kpmbp_soar_deadlines');
+    if (saved) {
+      allDeadlines = JSON.parse(saved);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  // Filter for this event
+  const matches = allDeadlines.filter(
+    (d) =>
+      d.eventId === event.id ||
+      d.event.toLowerCase() === event.title.toLowerCase() ||
+      (event.id === 'street-dakwah' && (d.event.includes('Street Dakwah') || d.eventId === 'street-dakwah'))
+  );
+
+  if (matches.length > 0) {
+    return matches.map((m) => ({
+      dueDate: m.dueDate,
+      requirement: m.requirement,
+      label: `Deadline: ${m.dueDate}${m.requirement ? ` (${m.requirement})` : ''}`
+    }));
+  }
+
+  if (event.submissionDeadline) {
+    const parts = event.submissionDeadline.split('|').map((p) => p.trim());
+    return parts.map((part) => ({
+      dueDate: part,
+      label: part.startsWith('Deadline:') ? part : `Deadline: ${part}`
+    }));
+  }
+
+  return [];
+}
+

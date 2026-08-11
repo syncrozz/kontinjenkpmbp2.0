@@ -1,5 +1,6 @@
 import React from 'react';
 import { EventDetail } from '../types';
+import { getEventDeadlines } from '../data/soarData';
 import { X, Users, MapPin, Calendar, Award, CheckCircle, FileText, AlertCircle, Info, Sparkles, ChevronRight, PhoneCall, UserCheck, Clock, AlertTriangle } from 'lucide-react';
 
 interface EventModalProps {
@@ -27,12 +28,6 @@ export const EventModal: React.FC<EventModalProps> = ({ event, onClose, onOpenCa
               <span className="text-xs font-medium text-slate-500">
                 Tema: <strong className="text-slate-800">"{event.theme}"</strong>
               </span>
-              {event.submissionDeadline && (
-                <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 border border-amber-600/30 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <span>Deadline: {event.submissionDeadline}</span>
-                </span>
-              )}
             </div>
             <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
               {event.title}
@@ -109,12 +104,16 @@ export const EventModal: React.FC<EventModalProps> = ({ event, onClose, onOpenCa
                   <Clock className="w-4 h-4 text-amber-700" />
                   Bahan Yang Perlu Dihantar & Deadline
                 </h3>
-                <span className="bg-amber-500 text-slate-950 px-3 py-1 rounded-lg text-xs font-black shadow-xs self-start sm:self-auto">
-                  DEADLINE PENGHANTARAN: {event.submissionDeadline || '10 SEPTEMBER 2026'}
-                </span>
+                <div className="flex flex-wrap gap-1.5 self-start sm:self-auto">
+                  {getEventDeadlines(event).map((dl, dIdx) => (
+                    <span key={dIdx} className="bg-amber-500 text-slate-950 px-3 py-1 rounded-lg text-xs font-black shadow-xs">
+                      {dl.label.toUpperCase()}
+                    </span>
+                  ))}
+                </div>
               </div>
               <p className="text-xs text-slate-700">
-                Semua 3 bahan rasmi berikut hendaklah disediakan dan dihantar sebelum atau pada <strong>{event.submissionDeadline || '10 September 2026'}</strong>:
+                Semua bahan rasmi berikut hendaklah disediakan dan dihantar mengikut tarikh akhir yang ditetapkan:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 {event.submissionItems.map((item, idx) => (

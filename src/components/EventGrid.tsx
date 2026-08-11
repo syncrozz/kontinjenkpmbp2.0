@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { EVENTS_DATA, SUBMISSION_DEADLINES, SubmissionDeadlineItem } from '../data/soarData';
+import { EVENTS_DATA, SUBMISSION_DEADLINES, SubmissionDeadlineItem, getEventDeadlines } from '../data/soarData';
 import { EventDetail } from '../types';
 import { EventModal } from './EventModal';
 import { Users, MapPin, Calendar, ChevronRight, Award, Theater, Music, Sparkles, Guitar, Video, Layers, Search, PhoneCall, UserCheck, Clock, AlertTriangle, CheckCircle2, ShieldAlert, Edit3, Plus, Trash2, RotateCcw, Save, X } from 'lucide-react';
@@ -295,13 +295,6 @@ export const EventGrid: React.FC<EventGridProps> = ({ searchQuery, onOpenCalcula
                         <Calendar className="w-3.5 h-3.5 text-slate-600 shrink-0" />
                         <span className="truncate">{event.dateStr}</span>
                       </div>
-
-                      {event.submissionDeadline && (
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-extrabold border border-amber-600/30 text-xs shadow-xs">
-                          <Clock className="w-3.5 h-3.5 text-slate-950 shrink-0" />
-                          <span className="truncate">Deadline: {event.submissionDeadline}</span>
-                        </div>
-                      )}
                     </div>
 
                     <div className="flex items-center gap-1.5 text-xs text-slate-700">
