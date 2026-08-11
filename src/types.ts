@@ -6,8 +6,33 @@ export interface EventDetail {
   participantsCount: string;
   venue: string;
   dateStr: string;
+  submissionDeadline?: string;
   description: string;
   rules: string[];
+  submissionItems?: string[];
+  elementsInfo?: {
+    mandatory: string[];
+    additionalTitle: string;
+    additionalOptions: string[];
+  };
+  durationInfo?: {
+    performanceTime: string;
+    setupCleanupTime: string;
+    totalTime: string;
+    warning: string;
+  };
+  eventTentative?: {
+    date: string;
+    items: { time: string; title: string; venue: string }[];
+  }[];
+  backgroundHistory?: string;
+  importantReminder?: {
+    deadline: string;
+    items: string[];
+    competitionDate: string;
+    competitionTime: string;
+    venue: string;
+  };
   advisors?: string[];
   leadAdvisor?: string;
   leadAdvisorPhone?: string;

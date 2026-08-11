@@ -15,9 +15,9 @@ export const SOAR_METADATA = {
       location: 'Banting, Selangor'
     },
     {
-      name: 'JKKN Negeri Sembilan',
+      name: 'Auditorium D’Sury, Kompleks JKKN Seremban',
       shortName: 'JKKN Seremban',
-      role: 'Pentas Pentandingan Teater Islamik',
+      role: 'Pentas Pertandingan Teater Islamik',
       location: 'Seremban, Negeri Sembilan'
     }
   ],
@@ -28,20 +28,83 @@ export const EVENTS_DATA: EventDetail[] = [
   {
     id: 'teater-islamik',
     title: 'Teater',
-    category: 'Teater',
+    category: 'Teater Islamik',
     theme: 'Teater Masar Al-Masajid',
     participantsCount: '15 orang',
-    venue: 'JKKN Negeri Sembilan, Seremban',
+    venue: 'Auditorium D’Sury, Kompleks JKKN Seremban',
     dateStr: '17 Oktober 2026',
-    description: 'Persembahan teater Islamik bertemakan "Masar Al-Masajid" yang mengembalikan ingatan dan mengagungkan sejarah serta pengajaran masjid-masjid terawal di dunia melalui pementasan dramatik yang berimpak tinggi.',
-    advisors: ['Muzlinda', 'Rabi', 'Nazhan', 'Nizam', 'Syifa'],
+    submissionDeadline: '10 September 2026',
+    description: 'Pertandingan teater Islamik yang mengangkat kisah sejarah masjid-masjid terawal di seluruh dunia melalui persembahan dramatik yang menggabungkan lakonan dengan elemen kerohanian seperti qasidah, syair, sajak, nyanyian dan potongan ayat Al-Quran.',
+    backgroundHistory: 'Teater Masar Al-Masajid merupakan pertandingan Teater Islamik yang memberi ruang kepada pelajar untuk mengangkat kisah-kisah sejarah masjid-masjid terawal di seluruh dunia melalui persembahan dramatik yang menonjolkan kesinambungan tamadun Islam serta pembentukan identiti dan legasi umat Islam merentasi zaman dan geografi.\n\nPertandingan ini dahulunya berada di bawah Program Mind Of Medina dan pada tahun 2026 digabungkan bersama Program Sound And Rhythm (SOAR) 2026.\n\nProgram SOAR 2026 dianjurkan di bawah Bahagian Pendidikan Tinggi MARA, dengan Kolej MARA Banting sebagai tuan rumah serta kerjasama Jabatan Kebudayaan dan Kesenian Negara (JKKN) Negeri Sembilan dan Yayasan Dakwah Islamiah Malaysia (YADIM).',
+    submissionItems: [
+      'Skrip Teater',
+      'Senarai Nama Peserta & Watak',
+      'Keperluan Tambahan Produksi'
+    ],
+    elementsInfo: {
+      mandatory: ['Lakonan — WAJIB'],
+      additionalTitle: 'Lakonan + Minimum 2 Elemen Tambahan',
+      additionalOptions: [
+        'Qasidah',
+        'Nyanyian Kerohanian',
+        'Syair',
+        'Sajak',
+        'Potongan Ayat Al-Quran'
+      ]
+    },
+    durationInfo: {
+      performanceTime: '15 – 25 minit',
+      setupCleanupTime: '15 minit (persiapan pentas & pembersihan)',
+      totalTime: '40 minit',
+      warning: 'Kumpulan yang tidak mengikut tempoh masa yang ditetapkan akan dipotong markah.'
+    },
+    eventTentative: [
+      {
+        date: '15 OKTOBER 2026 (KHAMIS)',
+        items: [
+          { time: '2.00 petang', title: 'Pendaftaran Kontinjen', venue: 'Kolej MARA Banting' },
+          { time: '2.00 petang – 5.00 petang', title: 'Kemasukan Alatan Pentas / Props Teater', venue: 'Auditorium D’Sury, Kompleks JKKN Seremban' }
+        ]
+      },
+      {
+        date: '16 OKTOBER 2026 (JUMAAT)',
+        items: [
+          { time: '2.45 petang – 7.00 petang', title: 'Persiapan Pementasan Teater / Raptai Ringkas', venue: 'Auditorium D’Sury, Kompleks JKKN Seremban' }
+        ]
+      },
+      {
+        date: '17 OKTOBER 2026 (SABTU)',
+        items: [
+          { time: '8.30 pagi – 6.00 petang', title: 'PERTANDINGAN TEATER MASAR AL-MASAJID', venue: 'Auditorium D’Sury, Kompleks JKKN Seremban' }
+        ]
+      },
+      {
+        date: '18 OKTOBER 2026 (AHAD)',
+        items: [
+          { time: '9.30 pagi', title: 'Majlis Perasmian Penutupan', venue: 'Dewan Al-Khawarizmi, Kolej MARA Banting' }
+        ]
+      }
+    ],
+    importantReminder: {
+      deadline: '10 SEPTEMBER 2026',
+      items: [
+        'Peserta, watak, skrip, keperluan produksi'
+      ],
+      competitionDate: '17 OKTOBER 2026',
+      competitionTime: '8.30 PAGI – 6.00 PETANG',
+      venue: 'AUDITORIUM D’SURY, KOMPLEKS JKKN SEREMBAN'
+    },
+    advisors: ['Muzlinda', 'Rabi', 'Nazhan', 'Nizam', 'Syifa', 'Afif'],
     leadAdvisor: 'Muzlinda',
     leadAdvisorPhone: '60192046144',
     leadAdvisorWhatsApp: 'https://wasap.my/60192046144',
     rules: [
       'Garis panduan rasmi menetapkan penyertaan maksimum 15 orang peserta merangkumi pelakon & krew produksi.',
       'Tema persembahan wajib berkisar tentang "Teater Masar Al-Masajid".',
-      'Pementasan secara rasmi diadakan di Dewan JKKN Negeri Sembilan pada 17 Oktober 2026.',
+      'DEADLINE PENGHANTARAN: 10 September 2026 (Wajib hantar Peserta, watak, skrip, keperluan produksi).',
+      'Pementasan secara rasmi diadakan di Auditorium D’Sury, Kompleks JKKN Seremban pada 17 Oktober 2026 (8.30 pagi – 6.00 petang).',
+      'Elemen pementasan WAJIB mengandungi Lakonan + Minimum 2 Elemen Tambahan (Qasidah, Nyanyian Kerohanian, Syair, Sajak, atau Potongan Ayat Al-Quran).',
+      'Tempoh pementasan adalah 15–25 minit, persiapan/pembersihan 15 minit (Jumlah 40 minit). Kumpulan yang tidak mengikut tempoh masa ditetapkan akan dipotong markah.',
       'Penyediaan prop dan busana hendaklah mematuhi etika pakaian syariah dan etika IPMA MARA.',
       'Keputusan panel penilai profesional adalah MUKTAMAD.'
     ],
@@ -49,10 +112,10 @@ export const EVENTS_DATA: EventDetail[] = [
       { component: 'Mesej & Penghayatan Islamik', percentage: 30, description: 'Kekuatan naratif, ketepatan fakta sejarah masjid dan nilai iktibar.' },
       { component: 'Kualiti Lakonan & Pengucapan', percentage: 25, description: 'Sebutan, kawalan vokal, artikulasi, dan lontaran emosi watak.' },
       { component: 'Pengarahan & Dramaturgi', percentage: 20, description: 'Kelancaran babak, pergerakan pentas, penggunaan ruang dan tempo.' },
-      { component: 'Kreativiti Busana & Prop', percentage: 15, description: 'Sesesuaian kostum, tata rias, serta prop latar pentas.' },
+      { component: 'Kreativiti Busana & Prop', percentage: 15, description: 'Kesesuaian kostum, tata rias, serta prop latar pentas.' },
       { component: 'Impak Keseluruhan & Disiplin Pentas', percentage: 10, description: 'Keserasian krew, ketepatan masa, dan etika kontinjen.' }
     ],
-    notes: 'Dipentaskan secara rasmi di Dewan JKKN Seremban pada hari ke-3 (17 Okt 2026). Perlu penyelarasan logistik bas kontinjen dari KMB ke JKKN.',
+    notes: 'Dipentaskan secara rasmi di Auditorium D’Sury, Kompleks JKKN Seremban pada 17 Oktober 2026. PERINGATAN PENTING: Sediakan dan hantar Peserta, watak, skrip, keperluan produksi sebelum/pada 10 SEPTEMBER 2026.',
     iconName: 'Theater'
   },
   {
@@ -142,21 +205,37 @@ export const EVENTS_DATA: EventDetail[] = [
   },
   {
     id: 'street-dakwah',
-    title: 'Short Film',
-    category: 'Short Film',
+    title: 'Street Dakwah',
+    category: 'Street Dakwah',
     theme: 'From Chaos to Calm',
     participantsCount: '5 orang',
-    venue: 'Penyerahan Dalam Talian & Saringan Video',
-    dateStr: 'Penyerahan Awal Sebelum 17 Okt 2026',
+    venue: 'Penyerahan Dalam Talian & Saringan Video (KMB)',
+    dateStr: '1 Sept & 15 Sept 2026',
+    submissionDeadline: '1 Sept 2026 (Nama & ID) | 15 Sept 2026 (Video)',
     description: 'Penghasilan video dakwah kreatif bertemakan "From Chaos to Calm" yang menekankan pendekatan dakwah berhikmah, berempati, santai, dan tidak menghukum masyarakat.',
+    submissionItems: [
+      'Nama & ID peserta (Keutamaan 1 — Due: 1 Sept 2026)',
+      'Video pertandingan (Keutamaan 3 — Due: 15 Sept 2026)'
+    ],
+    importantReminder: {
+      deadline: '1 SEPT 2026 & 15 SEPT 2026',
+      items: [
+        'Keutamaan 1 (1 Sept 2026): Nama & ID peserta',
+        'Keutamaan 3 (15 Sept 2026): Video pertandingan'
+      ],
+      competitionDate: '17 OKTOBER 2026',
+      competitionTime: '2.30 PETANG – 5.30 PETANG (SHOWCASE & PENJURIAN)',
+      venue: 'DEWAN KULIAH UTAMA, KOLEJ MARA BANTING'
+    },
     advisors: ['Halimah'],
     leadAdvisor: 'Halimatul',
     leadAdvisorPhone: '60177804852',
     leadAdvisorWhatsApp: 'https://wasap.my/60177804852',
     rules: [
       'Maksimum 5 orang ahli dalam pasukan produksi video.',
-      'Format video: Rakaman Full HD berkualiti tinggi.',
-      'Penghantaran secara dalam talian melalui pautan rasmi yang ditetapkan.',
+      'DEADLINE KEUTAMAAN 1 (1 Sept 2026): Wajib hantar Nama & ID peserta.',
+      'DEADLINE KEUTAMAAN 3 (15 Sept 2026): Wajib hantar Video pertandingan Full HD.',
+      'Format video: Rakaman Full HD berkualiti tinggi diserahkan melalui pautan rasmi.',
       'Syarat Ketat AI: AI TIDAK DIBENARKAN menghasilkan kandungan utama (skrip/visual). Hanya dibenarkan untuk penyuntingan teknikal seperti penstabilan video atau pengurangan bunyi audio (noise reduction).',
       'Mematuhi etika dakwah berhikmah, menghormati sensitiviti awam dan etika IPMA.'
     ],
@@ -168,8 +247,40 @@ export const EVENTS_DATA: EventDetail[] = [
       { component: 'Kualiti Teknikal Audio & Video', percentage: 10, description: 'Kejelasan audio, suntingan, kejelasan gambar Full HD, & adunan bunyi.' },
       { component: 'Kerjasama Pasukan', percentage: 10, description: 'Disiplin penyediaan, pematuhan garis panduan, & pengurusan.' }
     ],
-    notes: 'Satu-satunya acara media digital dengan wajaran rubrik khas 6 komponen!',
+    notes: 'Dua tarikh akhir penting: (1) 1 Sept 2026 - Hantar Nama & ID Peserta, (2) 15 Sept 2026 - Hantar Video Pertandingan.',
     iconName: 'Video'
+  }
+];
+
+export interface SubmissionDeadlineItem {
+  priority: number;
+  event: string;
+  eventId: string;
+  requirement: string;
+  dueDate: string;
+}
+
+export const SUBMISSION_DEADLINES: SubmissionDeadlineItem[] = [
+  {
+    priority: 1,
+    event: 'Short Film (Street Dakwah)',
+    eventId: 'street-dakwah',
+    requirement: 'Nama & ID peserta',
+    dueDate: '1 Sept 2026'
+  },
+  {
+    priority: 2,
+    event: 'Teater Islamik',
+    eventId: 'teater-islamik',
+    requirement: 'Peserta, watak, skrip, keperluan produksi',
+    dueDate: '10 Sept 2026'
+  },
+  {
+    priority: 3,
+    event: 'Short Film (Street Dakwah)',
+    eventId: 'street-dakwah',
+    requirement: 'Video pertandingan',
+    dueDate: '15 Sept 2026'
   }
 ];
 
@@ -322,7 +433,9 @@ export const SCHEDULE_DATA: ScheduleItem[] = [
 export const INITIAL_CHECKLIST: ChecklistItem[] = [
   { id: 'c1', category: 'Dokumen', title: 'Surat Kelulusan Peserta oleh Pengarah Pusat KPMBP', targetRole: 'Pegawai', completed: true },
   { id: 'c2', category: 'Dokumen', title: 'Senarai Nama Rasmi 41 Ahli Kontinjen (35 Pelajar, 4 Pegawai, 2 Pemandu)', targetRole: 'Pegawai', completed: true },
-  { id: 'c3', category: 'Teknikal', title: 'Penghantaran Video Street Dakwah (Full HD) ke Pautan Rasmi', targetRole: 'Pelajar', completed: false },
+  { id: 'c1_sd', category: 'Dokumen', title: 'Street Dakwah: Pendaftaran Nama & ID Peserta (Due: 1 Sept 2026)', targetRole: 'Pelajar', completed: true },
+  { id: 'c2_ti', category: 'Teknikal', title: 'Teater Islamik: Penghantaran Peserta, Watak, Skrip & Keperluan Produksi (Due: 10 Sept 2026)', targetRole: 'Pelajar', completed: false },
+  { id: 'c3', category: 'Teknikal', title: 'Street Dakwah: Penghantaran Video Pertandingan (Due: 15 Sept 2026)', targetRole: 'Pelajar', completed: false },
   { id: 'c4', category: 'Peralatan', title: 'Pemeriksaan Set Alatan Muzik & Props Teater Islamik', targetRole: 'Pelajar', completed: false },
   { id: 'c5', category: 'Logistik', title: 'Penyelenggaraan & Pemeriksaan Bas Kontinjen KPMBP', targetRole: 'Pemandu', completed: true },
   { id: 'c6', category: 'Kebajikan', title: 'Peti Pertolongan Cemas (First Aid Kit) & Ubat-Ubatan Kontinjen', targetRole: 'Pegawai', completed: false },

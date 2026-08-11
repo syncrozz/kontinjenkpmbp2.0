@@ -233,7 +233,7 @@ export const ContingentOverview: React.FC = () => {
             {[
               {
                 event: 'Teater Islamik',
-                advisors: 'Muzlinda, Rabi, Nazhan, Nizam, Syifa',
+                advisors: 'Muzlinda, Rabi, Nazhan, Nizam, Syifa, Afif',
                 leadName: 'Muzlinda',
                 phone: '60192046144',
                 whatsapp: 'https://wasap.my/60192046144',

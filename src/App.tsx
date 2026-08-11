@@ -8,6 +8,7 @@ import { RubricCalculator } from './components/RubricCalculator';
 import { LogisticsChecklist } from './components/LogisticsChecklist';
 import { GuidelinesSection } from './components/GuidelinesSection';
 import { TalentForm } from './components/TalentForm';
+import { SubmissionDeadlinesSection } from './components/SubmissionDeadlinesSection';
 import { AdminPanel } from './components/AdminPanel';
 import { Footer } from './components/Footer';
 import { Search, Compass, Layers, Calendar, Calculator, CheckSquare, ShieldAlert, Sparkles, X } from 'lucide-react';
@@ -75,7 +76,7 @@ export default function App() {
               }}
               onOpenEvent={handleOpenEvent}
             />
-            <EventGrid searchQuery={searchQuery} onOpenCalculator={handleOpenCalculator} />
+            <EventGrid searchQuery={searchQuery} onOpenCalculator={handleOpenCalculator} isAdminLoggedIn={isAdminLoggedIn} onOpenAdmin={() => setIsAdminOpen(true)} />
             <ContingentOverview />
             <ScheduleSection searchQuery={searchQuery} />
             <RubricCalculator />
@@ -88,7 +89,7 @@ export default function App() {
         {activeTab === 'talent' && <TalentForm />}
 
         {activeTab === 'events' && (
-          <EventGrid searchQuery={searchQuery} onOpenCalculator={handleOpenCalculator} />
+          <EventGrid searchQuery={searchQuery} onOpenCalculator={handleOpenCalculator} isAdminLoggedIn={isAdminLoggedIn} onOpenAdmin={() => setIsAdminOpen(true)} />
         )}
 
         {activeTab === 'schedule' && <ScheduleSection searchQuery={searchQuery} />}
@@ -108,6 +109,13 @@ export default function App() {
         onClose={() => setIsAdminOpen(false)}
         isAdminLoggedIn={isAdminLoggedIn}
         setIsAdminLoggedIn={setIsAdminLoggedIn}
+      />
+
+      {/* Submission Deadlines Section - Right before footer */}
+      <SubmissionDeadlinesSection
+        isAdminLoggedIn={isAdminLoggedIn}
+        onOpenAdmin={() => setIsAdminOpen(true)}
+        onOpenCalculator={handleOpenCalculator}
       />
 
       {/* Footer */}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { EventDetail } from '../types';
-import { X, Users, MapPin, Calendar, Award, CheckCircle, FileText, AlertCircle, Info, Sparkles, ChevronRight, PhoneCall, UserCheck } from 'lucide-react';
+import { X, Users, MapPin, Calendar, Award, CheckCircle, FileText, AlertCircle, Info, Sparkles, ChevronRight, PhoneCall, UserCheck, Clock, AlertTriangle } from 'lucide-react';
 
 interface EventModalProps {
   event: EventDetail | null;
@@ -20,13 +20,19 @@ export const EventModal: React.FC<EventModalProps> = ({ event, onClose, onOpenCa
         {/* Modal Header */}
         <div className="p-6 bg-slate-50 border-b border-slate-200 flex items-start justify-between relative">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
                 {event.category}
               </span>
               <span className="text-xs font-medium text-slate-500">
                 Tema: <strong className="text-slate-800">"{event.theme}"</strong>
               </span>
+              {event.submissionDeadline && (
+                <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 border border-amber-600/30 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  <span>Deadline: {event.submissionDeadline}</span>
+                </span>
+              )}
             </div>
             <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2">
               {event.title}
@@ -72,15 +78,142 @@ export const EventModal: React.FC<EventModalProps> = ({ event, onClose, onOpenCa
           </div>
 
           {/* Description */}
-          <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-1 flex items-center gap-1.5">
+          <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100 space-y-1">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
               <Info className="w-4 h-4" />
-              Penerangan & Konsep Acara
+              Ringkasan Acara
             </h3>
             <p className="text-slate-800 leading-relaxed text-sm">
               {event.description}
             </p>
           </div>
+
+          {/* Background History */}
+          {event.backgroundHistory && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                <Info className="w-4 h-4 text-blue-600" />
+                Latar Belakang Acara
+              </h3>
+              <div className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
+                {event.backgroundHistory}
+              </div>
+            </div>
+          )}
+
+          {/* Submission Items & Deadline Section */}
+          {event.submissionItems && (
+            <div className="bg-amber-50/90 border border-amber-300 rounded-xl p-4 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-amber-700" />
+                  Bahan Yang Perlu Dihantar & Deadline
+                </h3>
+                <span className="bg-amber-500 text-slate-950 px-3 py-1 rounded-lg text-xs font-black shadow-xs self-start sm:self-auto">
+                  DEADLINE PENGHANTARAN: {event.submissionDeadline || '10 SEPTEMBER 2026'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-700">
+                Semua 3 bahan rasmi berikut hendaklah disediakan dan dihantar sebelum atau pada <strong>{event.submissionDeadline || '10 September 2026'}</strong>:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {event.submissionItems.map((item, idx) => (
+                  <div key={idx} className="bg-white border border-amber-200 rounded-lg p-2.5 flex items-center gap-2 text-xs font-bold text-slate-900 shadow-xs">
+                    <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 text-[10px] flex items-center justify-center font-black shrink-0">{idx + 1}</span>
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Performance Elements Section */}
+          {event.elementsInfo && (
+            <div className="bg-indigo-50/80 border border-indigo-200 rounded-xl p-4 space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-indigo-700" />
+                Elemen Pertandingan Pementasan
+              </h3>
+              <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-900">
+                <span className="bg-indigo-600 text-white px-3 py-1 rounded-lg">
+                  Lakonan — WAJIB
+                </span>
+                <span className="text-indigo-800 font-extrabold">+</span>
+                <span className="bg-indigo-100 text-indigo-900 px-3 py-1 rounded-lg border border-indigo-300">
+                  {event.elementsInfo.additionalTitle}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600">
+                Pementasan WAJIB mempunyai Lakonan, serta sekurang-kurangnya 2 daripada elemen tambahan berikut:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {event.elementsInfo.additionalOptions.map((opt, i) => (
+                  <span key={i} className="bg-white border border-indigo-200 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-800 shadow-2xs">
+                    • {opt}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Performance Duration Section */}
+          {event.durationInfo && (
+            <div className="bg-sky-50/80 border border-sky-200 rounded-xl p-4 space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-sky-900 flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-sky-700" />
+                Tempoh Pementasan
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="bg-white p-3 rounded-lg border border-sky-200">
+                  <div className="text-[10px] text-slate-500 font-bold uppercase">Masa Pementasan</div>
+                  <div className="font-extrabold text-sky-900 text-sm mt-0.5">{event.durationInfo.performanceTime}</div>
+                </div>
+                <div className="bg-white p-3 rounded-lg border border-sky-200">
+                  <div className="text-[10px] text-slate-500 font-bold uppercase">Persiapan & Pembersihan</div>
+                  <div className="font-extrabold text-sky-900 text-sm mt-0.5">{event.durationInfo.setupCleanupTime}</div>
+                </div>
+                <div className="bg-white p-3 rounded-lg border border-sky-200">
+                  <div className="text-[10px] text-slate-500 font-bold uppercase">Jumlah Masa Keseluruhan</div>
+                  <div className="font-extrabold text-sky-900 text-sm mt-0.5">{event.durationInfo.totalTime}</div>
+                </div>
+              </div>
+              {event.durationInfo.warning && (
+                <p className="text-xs text-rose-800 font-bold bg-rose-50 p-2.5 rounded-lg border border-rose-200">
+                  ⚠️ {event.durationInfo.warning}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Tentatif Acara 15 - 18 Oktober 2026 */}
+          {event.eventTentative && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-blue-600" />
+                Tentatif 15 – 18 Oktober 2026
+              </h3>
+              <div className="space-y-3">
+                {event.eventTentative.map((dayItem, dIdx) => (
+                  <div key={dIdx} className="bg-white border border-slate-200 rounded-xl p-3 space-y-2">
+                    <div className="text-xs font-black text-blue-700 uppercase tracking-wide border-b border-slate-100 pb-1">
+                      {dayItem.date}
+                    </div>
+                    <div className="space-y-1.5">
+                      {dayItem.items.map((it, iIdx) => (
+                        <div key={iIdx} className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-1 bg-slate-50 p-2 rounded-lg">
+                          <span className="font-bold text-slate-900">{it.title}</span>
+                          <div className="flex items-center gap-2 text-slate-500 shrink-0">
+                            <span className="font-semibold text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{it.time}</span>
+                            <span>📍 {it.venue}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Penasihat Acara (PIC Acara) & Contact */}
           {event.advisors && (

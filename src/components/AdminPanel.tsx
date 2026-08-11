@@ -26,11 +26,12 @@ import {
   Link as LinkIcon,
   Filter,
   RotateCcw,
-  Delete
+  Delete,
+  Clock
 } from 'lucide-react';
 import { TalentFormData } from './TalentForm';
 import { ChecklistItem } from '../types';
-import { INITIAL_CHECKLIST } from '../data/soarData';
+import { INITIAL_CHECKLIST, EVENTS_DATA, SUBMISSION_DEADLINES, SubmissionDeadlineItem } from '../data/soarData';
 import { 
   subscribeToTalentSubmissions, 
   deleteTalentSubmissionFromFirestore, 
@@ -143,7 +144,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 }) => {
   const [pinInput, setPinInput] = useState('');
   const [loginError, setLoginError] = useState('');
-  const [adminTab, setAdminTab] = useState<'submissions' | 'checklist'>('submissions');
+  const [adminTab, setAdminTab] = useState<'submissions' | 'checklist' | 'deadlines'>('submissions');
 
   // Submissions State
   const [submissions, setSubmissions] = useState<any[]>([]);
@@ -161,12 +162,96 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [itemCategory, setItemCategory] = useState<'Logistik' | 'Dokumen' | 'Peralatan' | 'Kebajikan' | 'Teknikal'>('Dokumen');
   const [itemRole, setItemRole] = useState<'Pegawai' | 'Pelajar' | 'Pemandu' | 'Semua'>('Semua');
 
+  // Deadlines State
+  const [deadlines, setDeadlines] = useState<SubmissionDeadlineItem[]>(() => {
+    const saved = localStorage.getItem('kpmbp_soar_deadlines');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return SUBMISSION_DEADLINES;
+  });
+
+  const [editingDeadlineIdx, setEditingDeadlineIdx] = useState<number | null>(null);
+  const [showDeadlineModal, setShowDeadlineModal] = useState(false);
+  const [deadlineForm, setDeadlineForm] = useState<SubmissionDeadlineItem>({
+    priority: 1,
+    event: 'Teater Islamik',
+    eventId: 'teater-islamik',
+    requirement: '',
+    dueDate: ''
+  });
+
   // Toast feedback
   const [toastMsg, setToastMsg] = useState('');
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(''), 3000);
+  };
+
+  const handleStartAddDeadline = () => {
+    setEditingDeadlineIdx(null);
+    setDeadlineForm({
+      priority: deadlines.length + 1,
+      event: 'Teater Islamik',
+      eventId: 'teater-islamik',
+      requirement: '',
+      dueDate: ''
+    });
+    setShowDeadlineModal(true);
+  };
+
+  const handleStartEditDeadline = (idx: number) => {
+    setEditingDeadlineIdx(idx);
+    setDeadlineForm({ ...deadlines[idx] });
+    setShowDeadlineModal(true);
+  };
+
+  const handleSaveDeadline = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deadlineForm.requirement.trim() || !deadlineForm.dueDate.trim()) {
+      alert('Sila lengkapkan semua medan keperluan dan tarikh akhir (Due Date).');
+      return;
+    }
+
+    let updated: SubmissionDeadlineItem[];
+    if (editingDeadlineIdx !== null) {
+      updated = deadlines.map((item, i) => (i === editingDeadlineIdx ? deadlineForm : item));
+      showToast('Alert deadline berjaya dikemas kini!');
+    } else {
+      updated = [...deadlines, deadlineForm];
+      showToast('Alert deadline baru berjaya ditambah!');
+    }
+
+    const sorted = [...updated].sort((a, b) => a.priority - b.priority);
+    setDeadlines(sorted);
+    localStorage.setItem('kpmbp_soar_deadlines', JSON.stringify(sorted));
+    window.dispatchEvent(new Event('deadlinesUpdated'));
+    setShowDeadlineModal(false);
+  };
+
+  const handleDeleteDeadline = (idx: number) => {
+    if (confirm('Adakah anda pasti untuk memadam item deadline ini?')) {
+      const updated = deadlines.filter((_, i) => i !== idx);
+      const sorted = [...updated].sort((a, b) => a.priority - b.priority);
+      setDeadlines(sorted);
+      localStorage.setItem('kpmbp_soar_deadlines', JSON.stringify(sorted));
+      window.dispatchEvent(new Event('deadlinesUpdated'));
+      showToast('Item deadline telah dipadam.');
+    }
+  };
+
+  const handleResetDeadlinesDefault = () => {
+    if (confirm('Tetapkan semula senarai deadline kepada asal (Default)?')) {
+      setDeadlines(SUBMISSION_DEADLINES);
+      localStorage.setItem('kpmbp_soar_deadlines', JSON.stringify(SUBMISSION_DEADLINES));
+      window.dispatchEvent(new Event('deadlinesUpdated'));
+      showToast('Senarai deadline di-reset ke asal.');
+    }
   };
 
   // Real-time subscriptions for Submissions & Checklist
@@ -541,10 +626,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             
             {/* Top Admin Nav Tabs */}
             <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 shrink-0">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => setAdminTab('submissions')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     adminTab === 'submissions'
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
@@ -556,7 +641,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                 <button
                   onClick={() => setAdminTab('checklist')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     adminTab === 'checklist'
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
@@ -565,26 +650,40 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <CheckSquare className="w-4 h-4" />
                   <span>Pengurusan Checklist ({checklistItems.length})</span>
                 </button>
+
+                <button
+                  onClick={() => setAdminTab('deadlines')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    adminTab === 'deadlines'
+                      ? 'bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <Clock className="w-4 h-4 text-amber-950" />
+                  <span>Edit Due Date Submission ({deadlines.length})</span>
+                </button>
               </div>
 
-              {adminTab === 'submissions' ? (
+              {adminTab === 'submissions' && (
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleExportCSV}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
                   >
                     <FileSpreadsheet className="w-3.5 h-3.5" />
                     <span>Eksport CSV</span>
                   </button>
                   <button
                     onClick={handleExportJSON}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold shadow-xs transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>JSON</span>
                   </button>
                 </div>
-              ) : (
+              )}
+
+              {adminTab === 'checklist' && (
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
@@ -594,17 +693,36 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       setItemRole('Semua');
                       setShowItemModal(true);
                     }}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Tambah Tugasan Baru</span>
                   </button>
                   <button
                     onClick={handleResetChecklistToDefault}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-all"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-all cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Reset Checklist</span>
+                  </button>
+                </div>
+              )}
+
+              {adminTab === 'deadlines' && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleStartAddDeadline}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-xs transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Tambah Due Date Baru</span>
+                  </button>
+                  <button
+                    onClick={handleResetDeadlinesDefault}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Reset Default</span>
                   </button>
                 </div>
               )}
@@ -813,6 +931,96 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
             )}
+
+            {/* TAB CONTENT 3: DEADLINES MANAGER */}
+            {adminTab === 'deadlines' && (
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+                
+                <div className="bg-amber-50 border border-amber-300/80 rounded-2xl p-4 text-xs text-amber-950 leading-relaxed flex items-start gap-3 shadow-xs">
+                  <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-extrabold text-amber-950 text-sm">Pengurusan Alert & Due Date Penyerahan Bahan Kontinjen</div>
+                    <p className="mt-0.5 text-amber-900 font-medium">
+                      Sebagai Pentadbir, anda boleh mengemas kini tarikh akhir (Due Date), menambah keperluan serahan baharu, menetapkan tahap keutamaan, atau memadamkan alert lama. Maklumat ini akan dipaparkan secara langsung pada Jadual Keutamaan Halaman Utama untuk makluman seluruh kontinjen KPMBP.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                  <div className="p-4 bg-amber-500 text-slate-950 font-black text-xs flex justify-between items-center border-b border-amber-600/20">
+                    <span className="flex items-center gap-2 uppercase tracking-wide">
+                      <Clock className="w-4 h-4 text-slate-950" />
+                      <span>Senarai Alert Due Date Pertandingan ({deadlines.length})</span>
+                    </span>
+                    <button
+                      onClick={handleStartAddDeadline}
+                      className="bg-slate-950 text-amber-400 hover:bg-slate-800 text-[11px] font-bold px-3 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Tambah Baru</span>
+                    </button>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs text-slate-800">
+                      <thead className="bg-slate-100 text-slate-700 uppercase tracking-wider text-[10px] font-bold border-b border-slate-200">
+                        <tr>
+                          <th className="p-3.5 text-center w-24">Keutamaan</th>
+                          <th className="p-3.5 w-44">Acara Pertandingan</th>
+                          <th className="p-3.5">Keperluan yang Perlu Dihantar</th>
+                          <th className="p-3.5 w-48">Due Date</th>
+                          <th className="p-3.5 text-right w-28">Tindakan Admin</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-medium">
+                        {deadlines.map((dl, idx) => {
+                          const priorityBadges = ['🥇 1', '🥈 2', '🥉 3'];
+                          return (
+                            <tr key={idx} className="hover:bg-amber-50/50 transition-colors">
+                              <td className="p-3.5 text-center font-black">
+                                <span className="inline-flex items-center justify-center bg-slate-100 text-slate-900 font-black px-2.5 py-1 rounded-lg border border-slate-200 text-xs">
+                                  {priorityBadges[dl.priority - 1] || `#${dl.priority}`}
+                                </span>
+                              </td>
+                              <td className="p-3.5 font-bold text-blue-900">
+                                {dl.event}
+                              </td>
+                              <td className="p-3.5 font-semibold text-slate-800">
+                                {dl.requirement}
+                              </td>
+                              <td className="p-3.5 font-black text-slate-950">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-100 text-amber-950 border border-amber-300 font-extrabold text-xs">
+                                  <Clock className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                                  <span>{dl.dueDate}</span>
+                                </span>
+                              </td>
+                              <td className="p-3.5 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button
+                                    onClick={() => handleStartEditDeadline(idx)}
+                                    className="p-1.5 rounded-lg bg-slate-100 hover:bg-blue-100 text-blue-700 border border-slate-200 transition-all cursor-pointer"
+                                    title="Edit Item"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteDeadline(idx)}
+                                    className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition-all cursor-pointer"
+                                    title="Padam Item"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -971,6 +1179,107 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20"
                 >
                   {editingItem ? 'Kemaskini' : 'Tambah Tugasan'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: ADD / EDIT DEADLINE MODAL */}
+      {showDeadlineModal && (
+        <div className="fixed inset-0 z-60 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+            
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h4 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-amber-600" />
+                <span>{editingDeadlineIdx !== null ? 'Kemaskini Alert Due Date' : 'Tambah Alert Due Date Baru'}</span>
+              </h4>
+              <button onClick={() => setShowDeadlineModal(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveDeadline} className="space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="font-extrabold text-slate-700">Tahap Keutamaan</label>
+                  <select
+                    value={deadlineForm.priority}
+                    onChange={(e) => setDeadlineForm({ ...deadlineForm, priority: parseInt(e.target.value) || 1 })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value={1}>🥇 Keutamaan 1</option>
+                    <option value={2}>🥈 Keutamaan 2</option>
+                    <option value={3}>🥉 Keutamaan 3</option>
+                    <option value={4}>4 (Keutamaan Rendah)</option>
+                    <option value={5}>5 (Keutamaan Rendah)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-extrabold text-slate-700">Acara Pertandingan</label>
+                  <select
+                    value={deadlineForm.event}
+                    onChange={(e) => {
+                      const selectedTitle = e.target.value;
+                      const match = EVENTS_DATA.find(ev => ev.title.toLowerCase() === selectedTitle.toLowerCase() || ev.category.toLowerCase() === selectedTitle.toLowerCase());
+                      setDeadlineForm({
+                        ...deadlineForm,
+                        event: selectedTitle,
+                        eventId: match ? match.id : selectedTitle.toLowerCase().replace(/\s+/g, '-')
+                      });
+                    }}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-amber-500"
+                  >
+                    <option value="Teater Islamik">Teater Islamik</option>
+                    <option value="BOTB">BOTB</option>
+                    <option value="Symphonic Duo">Symphonic Duo</option>
+                    <option value="Tarian Zapin">Tarian Zapin</option>
+                    <option value="Short Film (Street Dakwah)">Short Film (Street Dakwah)</option>
+                    <option value="Semua Acara / Umum">Semua Acara / Umum</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-extrabold text-slate-700">Keperluan yang Perlu Dihantar <span className="text-rose-500">*</span></label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Nama & ID peserta / Skrip & Video"
+                  value={deadlineForm.requirement}
+                  onChange={(e) => setDeadlineForm({ ...deadlineForm, requirement: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-amber-500 font-medium text-slate-900"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-extrabold text-slate-700">Tarikh Akhir (Due Date) <span className="text-rose-500">*</span></label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 1 Sept 2026 / 15 Sept 2026"
+                  value={deadlineForm.dueDate}
+                  onChange={(e) => setDeadlineForm({ ...deadlineForm, dueDate: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-amber-500 font-bold text-slate-900"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowDeadlineModal(false)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs shadow-md shadow-amber-500/20 cursor-pointer"
+                >
+                  {editingDeadlineIdx !== null ? 'Kemaskini' : 'Tambah Due Date'}
                 </button>
               </div>
             </form>
