@@ -284,6 +284,7 @@ export const TalentForm: React.FC = () => {
 
     // 1. Normalization prior to validation and database/sheet storage
     const normalizedNama = formData.namaPenuh.trim().replace(/\s+/g, ' ').toUpperCase();
+    const normalizedProgram = formData.programPengajian.trim().toUpperCase();
     const normalizedIdPelajar = formatIdPelajar(formData.noIdPelajar).toUpperCase();
     const normalizedNoIc = formatNoIc(formData.noIc);
     const normalizedTelefon = formatNoTelefon(formData.noTelefon);
@@ -336,6 +337,7 @@ export const TalentForm: React.FC = () => {
     setFormData((prev) => ({
       ...prev,
       namaPenuh: normalizedNama,
+      programPengajian: normalizedProgram,
       noIdPelajar: normalizedIdPelajar,
       noIc: normalizedNoIc,
       noTelefon: normalizedTelefon,
@@ -344,6 +346,7 @@ export const TalentForm: React.FC = () => {
     const submissionPayload = {
       ...formData,
       namaPenuh: normalizedNama,
+      programPengajian: normalizedProgram,
       noIdPelajar: normalizedIdPelajar,
       noIc: normalizedNoIc,
       noTelefon: normalizedTelefon,
@@ -549,10 +552,7 @@ ${formData.pernahPertandingan === 'Ya' ? `*Butiran:* ${formData.namaPertandingan
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               {/* Nama Penuh */}
               <div className="sm:col-span-2 space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="font-bold text-slate-700">Nama Penuh <span className="text-rose-500">*</span></label>
-                  <span className="text-[10px] text-slate-400 font-medium">HURUF BESAR</span>
-                </div>
+                <label className="font-bold text-slate-700 block">Nama Penuh <span className="text-rose-500">*</span></label>
                 <input
                   type="text"
                   required
@@ -566,10 +566,7 @@ ${formData.pernahPertandingan === 'Ya' ? `*Butiran:* ${formData.namaPertandingan
 
               {/* No IC */}
               <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="font-bold text-slate-700">No. Kad Pengenalan / No. Isi <span className="text-rose-500">*</span></label>
-                  <span className="text-[10px] text-slate-400 font-mono">XXXXXX-XX-XXXX</span>
-                </div>
+                <label className="font-bold text-slate-700 block">No. Kad Pengenalan / No. Isi <span className="text-rose-500">*</span></label>
                 <input
                   type="text"
                   required
@@ -585,10 +582,7 @@ ${formData.pernahPertandingan === 'Ya' ? `*Butiran:* ${formData.namaPertandingan
 
               {/* No ID Pelajar */}
               <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="font-bold text-slate-700">No. ID Pelajar <span className="text-rose-500">*</span></label>
-                  <span className="text-[10px] text-slate-400 font-mono">XXX-XXXX-XXX</span>
-                </div>
+                <label className="font-bold text-slate-700 block">No. ID Pelajar <span className="text-rose-500">*</span></label>
                 <input
                   type="text"
                   required
@@ -604,20 +598,21 @@ ${formData.pernahPertandingan === 'Ya' ? `*Butiran:* ${formData.namaPertandingan
 
               {/* Program Pengajian */}
               <div className="space-y-1">
-                <label className="font-bold text-slate-700">Program Pengajian <span className="text-rose-500">*</span></label>
+                <label className="font-bold text-slate-700 block">Program Pengajian <span className="text-rose-500">*</span></label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. DLM / DIA"
                   value={formData.programPengajian}
-                  onChange={(e) => setFormData({ ...formData, programPengajian: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => setFormData({ ...formData, programPengajian: e.target.value.toUpperCase() })}
+                  onBlur={(e) => setFormData({ ...formData, programPengajian: e.target.value.trim().toUpperCase() })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 uppercase focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* Semester */}
               <div className="space-y-1">
-                <label className="font-bold text-slate-700">Semester <span className="text-rose-500">*</span></label>
+                <label className="font-bold text-slate-700 block">Semester <span className="text-rose-500">*</span></label>
                 <select
                   value={formData.semester}
                   onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
@@ -634,10 +629,7 @@ ${formData.pernahPertandingan === 'Ya' ? `*Butiran:* ${formData.namaPertandingan
 
               {/* No Telefon */}
               <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="font-bold text-slate-700">No. Telefon <span className="text-rose-500">*</span></label>
-                  <span className="text-[10px] text-slate-400 font-mono">01X-XXXXXXX</span>
-                </div>
+                <label className="font-bold text-slate-700 block">No. Telefon <span className="text-rose-500">*</span></label>
                 <input
                   type="tel"
                   required
