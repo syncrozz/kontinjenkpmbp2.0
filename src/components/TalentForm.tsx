@@ -139,6 +139,129 @@ const initialFormData: TalentFormData = {
   akuanBersetuju: false,
 };
 
+// ==================== AUTO FORMAT / INPUT MASKING UTILITIES ====================
+
+/**
+ * Auto format No. Kad Pengenalan / No. Isi (XXXXXX-XX-XXXX)
+ * Supports live typing, backspace handling, and paste handling without duplicate dashes.
+ */
+export function formatNoIc(input: string, prevValue: string = ''): string {
+  // If user deleted trailing dash
+  if (prevValue.endsWith('-') && input === prevValue.slice(0, -1)) {
+    const rawPrev = prevValue.replace(/\D/g, '');
+    const trimmed = rawPrev.slice(0, -1);
+    return formatNoIcRaw(trimmed, false);
+  }
+
+  const isDeleting = input.length < prevValue.length;
+  const raw = input.replace(/\D/g, '').slice(0, 12);
+  return formatNoIcRaw(raw, !isDeleting);
+}
+
+function formatNoIcRaw(raw: string, appendDash: boolean): string {
+  if (!raw) return '';
+  if (raw.length < 6) return raw;
+  if (raw.length === 6) return appendDash ? `${raw}-` : raw;
+  if (raw.length < 8) return `${raw.slice(0, 6)}-${raw.slice(6)}`;
+  if (raw.length === 8) return appendDash ? `${raw.slice(0, 6)}-${raw.slice(6, 8)}-` : `${raw.slice(0, 6)}-${raw.slice(6, 8)}`;
+  return `${raw.slice(0, 6)}-${raw.slice(6, 8)}-${raw.slice(8, 12)}`;
+}
+
+/**
+ * Auto format No. ID Pelajar (XXX-XXXX-XXX)
+ * Accepts any 3 letters (A-Z), automatically uppercase, inserts dashes after 3 letters and 4 digits.
+ */
+export function formatIdPelajar(input: string, prevValue: string = ''): string {
+  const upper = input.toUpperCase();
+
+  // If user deleted trailing dash
+  if (prevValue.endsWith('-') && upper === prevValue.slice(0, -1).toUpperCase()) {
+    const cleanPrev = prevValue.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const trimmed = cleanPrev.slice(0, -1);
+    return formatIdPelajarRaw(trimmed, false);
+  }
+
+  const isDeleting = input.length < prevValue.length;
+  const clean = upper.replace(/[^A-Z0-9]/g, '');
+  return formatIdPelajarRaw(clean, !isDeleting);
+}
+
+function formatIdPelajarRaw(clean: string, appendDash: boolean): string {
+  if (!clean) return '';
+  const lettersMatch = clean.match(/^[A-Z]{0,3}/);
+  const letters = lettersMatch ? lettersMatch[0] : '';
+  const rest = clean.slice(letters.length).replace(/\D/g, '');
+
+  if (letters.length < 3) {
+    return letters;
+  }
+
+  if (letters.length === 3 && rest.length === 0) {
+    return appendDash ? `${letters}-` : letters;
+  }
+
+  const part2 = rest.slice(0, 4);
+  const part3 = rest.slice(4, 7);
+
+  if (part2.length < 4) {
+    return `${letters}-${part2}`;
+  }
+
+  if (part2.length === 4 && part3.length === 0) {
+    return appendDash ? `${letters}-${part2}-` : `${letters}-${part2}`;
+  }
+
+  return `${letters}-${part2}-${part3}`;
+}
+
+/**
+ * Auto format No. Telefon (e.g. 014-5313756, 6014-5313756)
+ * Supports live typing, backspace handling, and paste handling without duplicate dashes.
+ */
+export function formatNoTelefon(input: string, prevValue: string = ''): string {
+  // If user deleted trailing dash
+  if (prevValue.endsWith('-') && input === prevValue.slice(0, -1)) {
+    const rawPrev = prevValue.replace(/\D/g, '');
+    const trimmed = rawPrev.slice(0, -1);
+    return formatNoTelefonRaw(trimmed, false);
+  }
+
+  const isDeleting = input.length < prevValue.length;
+  const raw = input.replace(/\D/g, '').slice(0, 13);
+  return formatNoTelefonRaw(raw, !isDeleting);
+}
+
+function formatNoTelefonRaw(raw: string, appendDash: boolean): string {
+  if (!raw) return '';
+
+  let prefixLen = 3;
+  if (raw.startsWith('601')) {
+    prefixLen = 4; // e.g. 6014-
+  } else if (raw.startsWith('60')) {
+    prefixLen = 3; // e.g. 603-
+  } else if (raw.startsWith('01')) {
+    prefixLen = 3; // e.g. 014-
+  } else if (raw.startsWith('0')) {
+    if (raw.startsWith('08')) {
+      prefixLen = 3; // 082-, 088-
+    } else {
+      prefixLen = 2; // 03-, 07-, 09-
+    }
+  }
+
+  if (raw.length < prefixLen) {
+    return raw;
+  }
+
+  if (raw.length === prefixLen) {
+    return appendDash ? `${raw}-` : raw;
+  }
+
+  const prefix = raw.slice(0, prefixLen);
+  const suffix = raw.slice(prefixLen);
+  return `${prefix}-${suffix}`;
+}
+
 export const TalentForm: React.FC = () => {
   const [formData, setFormData] = useState<TalentFormData>(initialFormData);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
@@ -161,11 +284,12 @@ export const TalentForm: React.FC = () => {
 
     // 1. Normalization prior to validation and database/sheet storage
     const normalizedNama = formData.namaPenuh.trim().replace(/\s+/g, ' ').toUpperCase();
-    const normalizedIdPelajar = formData.noIdPelajar.trim().toUpperCase();
-    const normalizedNoIc = formData.noIc.trim();
+    const normalizedIdPelajar = formatIdPelajar(formData.noIdPelajar).toUpperCase();
+    const normalizedNoIc = formatNoIc(formData.noIc);
+    const normalizedTelefon = formatNoTelefon(formData.noTelefon);
 
     // 2. Required fields validation
-    if (!normalizedNama || !normalizedNoIc || !normalizedIdPelajar || !formData.noTelefon.trim()) {
+    if (!normalizedNama || !normalizedNoIc || !normalizedIdPelajar || !normalizedTelefon) {
       setErrorMsg('Sila lengkapkan Maklumat Peribadi (Nama Penuh, No. Kad Pengenalan / No. Isi, No. ID Pelajar, No. Telefon).');
       window.scrollTo({ top: 300, behavior: 'smooth' });
       return;
@@ -214,6 +338,7 @@ export const TalentForm: React.FC = () => {
       namaPenuh: normalizedNama,
       noIdPelajar: normalizedIdPelajar,
       noIc: normalizedNoIc,
+      noTelefon: normalizedTelefon,
     }));
 
     const submissionPayload = {
@@ -221,6 +346,7 @@ export const TalentForm: React.FC = () => {
       namaPenuh: normalizedNama,
       noIdPelajar: normalizedIdPelajar,
       noIc: normalizedNoIc,
+      noTelefon: normalizedTelefon,
       submittedAt: new Date().toISOString(),
     };
 
@@ -447,9 +573,12 @@ ${formData.pernahPertandingan === 'Ya' ? `*Butiran:* ${formData.namaPertandingan
                 <input
                   type="text"
                   required
-                  placeholder="e.g. 080905-01-1779"
+                  placeholder="e.g. 861115-46-5305"
                   value={formData.noIc}
-                  onChange={(e) => setFormData({ ...formData, noIc: e.target.value })}
+                  onChange={(e) => {
+                    const formatted = formatNoIc(e.target.value, formData.noIc);
+                    setFormData((prev) => ({ ...prev, noIc: formatted }));
+                  }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -463,9 +592,12 @@ ${formData.pernahPertandingan === 'Ya' ? `*Butiran:* ${formData.namaPertandingan
                 <input
                   type="text"
                   required
-                  placeholder="e.g. PDA-2502-021"
+                  placeholder="e.g. PDA-2502-011"
                   value={formData.noIdPelajar}
-                  onChange={(e) => setFormData({ ...formData, noIdPelajar: e.target.value.toUpperCase() })}
+                  onChange={(e) => {
+                    const formatted = formatIdPelajar(e.target.value, formData.noIdPelajar);
+                    setFormData((prev) => ({ ...prev, noIdPelajar: formatted }));
+                  }}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 uppercase font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -502,14 +634,20 @@ ${formData.pernahPertandingan === 'Ya' ? `*Butiran:* ${formData.namaPertandingan
 
               {/* No Telefon */}
               <div className="space-y-1">
-                <label className="font-bold text-slate-700">No. Telefon <span className="text-rose-500">*</span></label>
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-700">No. Telefon <span className="text-rose-500">*</span></label>
+                  <span className="text-[10px] text-slate-400 font-mono">01X-XXXXXXX</span>
+                </div>
                 <input
                   type="tel"
                   required
-                  placeholder="e.g. 012-3456789"
+                  placeholder="e.g. 014-5313756"
                   value={formData.noTelefon}
-                  onChange={(e) => setFormData({ ...formData, noTelefon: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => {
+                    const formatted = formatNoTelefon(e.target.value, formData.noTelefon);
+                    setFormData((prev) => ({ ...prev, noTelefon: formatted }));
+                  }}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
