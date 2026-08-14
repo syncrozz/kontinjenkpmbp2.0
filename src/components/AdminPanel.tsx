@@ -52,9 +52,9 @@ interface AdminPanelProps {
 // Sample initial submissions if none exist so admin has data to inspect immediately
 const SAMPLE_SUBMISSIONS = [
   {
-    namaPenuh: 'Muhammad Farhan bin Ismail',
+    namaPenuh: 'MUHAMMAD FARHAN BIN ISMAIL',
     noIc: '040815-01-5431',
-    noIdPelajar: 'KPM20248812',
+    noIdPelajar: 'PDA-2502-021',
     programPengajian: 'Diploma in Information Technology (DIT)',
     semester: 'Semester 3',
     noTelefon: '019-7654321',
@@ -93,9 +93,9 @@ const SAMPLE_SUBMISSIONS = [
     submittedAt: '2026-08-07T14:30:00.000Z'
   },
   {
-    namaPenuh: 'Nur Aisha Binti Razak',
+    namaPenuh: 'NUR AISHA BINTI RAZAK',
     noIc: '050210-01-8892',
-    noIdPelajar: 'KPM20249921',
+    noIdPelajar: 'PLC-2602-015',
     programPengajian: 'Diploma in Integrated Logistics (DIL)',
     semester: 'Semester 2',
     noTelefon: '013-8821900',

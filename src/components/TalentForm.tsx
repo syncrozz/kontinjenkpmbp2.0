@@ -159,29 +159,68 @@ export const TalentForm: React.FC = () => {
     e.preventDefault();
     setErrorMsg('');
 
-    // Validation checks
-    if (!formData.namaPenuh || !formData.noIdPelajar || !formData.noTelefon) {
-      setErrorMsg('Sila lengkapkan Maklumat Peribadi (Nama, ID Pelajar, No. Telefon).');
+    // 1. Normalization prior to validation and database/sheet storage
+    const normalizedNama = formData.namaPenuh.trim().replace(/\s+/g, ' ').toUpperCase();
+    const normalizedIdPelajar = formData.noIdPelajar.trim().toUpperCase();
+    const normalizedNoIc = formData.noIc.trim();
+
+    // 2. Required fields validation
+    if (!normalizedNama || !normalizedNoIc || !normalizedIdPelajar || !formData.noTelefon.trim()) {
+      setErrorMsg('Sila lengkapkan Maklumat Peribadi (Nama Penuh, No. Kad Pengenalan / No. Isi, No. ID Pelajar, No. Telefon).');
+      window.scrollTo({ top: 300, behavior: 'smooth' });
       return;
     }
 
+    // 3. ID Pelajar Validation (Format: XXX-XXXX-XXX)
+    const idPelajarRegex = /^[A-Z]{3}-[0-9]{4}-[0-9]{3}$/;
+    if (!idPelajarRegex.test(normalizedIdPelajar)) {
+      setErrorMsg('Format ID tidak sah. Sila gunakan format XXX-XXXX-XXX.');
+      window.scrollTo({ top: 300, behavior: 'smooth' });
+      return;
+    }
+
+    // 4. No. Isi / No. Kad Pengenalan Validation (Format: XXXXXX-XX-XXXX)
+    const noIcRegex = /^[0-9]{6}-[0-9]{2}-[0-9]{4}$/;
+    if (!noIcRegex.test(normalizedNoIc)) {
+      setErrorMsg('Format No. Isi tidak sah. Sila gunakan format XXXXXX-XX-XXXX.');
+      window.scrollTo({ top: 300, behavior: 'smooth' });
+      return;
+    }
+
+    // 5. Acara selection validation
     if (formData.acaraDiminati.length === 0) {
       setErrorMsg('Sila pilih sekurang-kurangnya SATU Acara yang diminati di Bahagian B.');
+      window.scrollTo({ top: 300, behavior: 'smooth' });
       return;
     }
 
+    // 6. Bakat Utama validation
     if (!formData.bakatUtama) {
       setErrorMsg('Sila pilih Bidang Bakat Utama anda di Bahagian C.');
+      window.scrollTo({ top: 300, behavior: 'smooth' });
       return;
     }
 
+    // 7. Akuan validation
     if (!formData.akuanBersetuju) {
       setErrorMsg('Sila tandakan pengesahan Akuan di Bahagian G untuk meneruskan hantaran.');
+      window.scrollTo({ top: 300, behavior: 'smooth' });
       return;
     }
+
+    // Synchronize normalized state
+    setFormData((prev) => ({
+      ...prev,
+      namaPenuh: normalizedNama,
+      noIdPelajar: normalizedIdPelajar,
+      noIc: normalizedNoIc,
+    }));
 
     const submissionPayload = {
       ...formData,
+      namaPenuh: normalizedNama,
+      noIdPelajar: normalizedIdPelajar,
+      noIc: normalizedNoIc,
       submittedAt: new Date().toISOString(),
     };
 
@@ -384,40 +423,50 @@ ${formData.pernahPertandingan === 'Ya' ? `*Butiran:* ${formData.namaPertandingan
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               {/* Nama Penuh */}
               <div className="sm:col-span-2 space-y-1">
-                <label className="font-bold text-slate-700">Nama Penuh <span className="text-rose-500">*</span></label>
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-700">Nama Penuh <span className="text-rose-500">*</span></label>
+                  <span className="text-[10px] text-slate-400 font-medium">HURUF BESAR</span>
+                </div>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. AMIRUL BIN AHMAD"
+                  placeholder="e.g. NUR AINA BATRISYIA BINTI ZULHILMI"
                   value={formData.namaPenuh}
-                  onChange={(e) => setFormData({ ...formData, namaPenuh: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => setFormData({ ...formData, namaPenuh: e.target.value.toUpperCase() })}
+                  onBlur={(e) => setFormData({ ...formData, namaPenuh: e.target.value.trim().replace(/\s+/g, ' ').toUpperCase() })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 uppercase focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* No IC */}
               <div className="space-y-1">
-                <label className="font-bold text-slate-700">No. Kad Pengenalan <span className="text-rose-500">*</span></label>
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-700">No. Kad Pengenalan / No. Isi <span className="text-rose-500">*</span></label>
+                  <span className="text-[10px] text-slate-400 font-mono">XXXXXX-XX-XXXX</span>
+                </div>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. 040512-01-1234"
+                  placeholder="e.g. 080905-01-1779"
                   value={formData.noIc}
                   onChange={(e) => setFormData({ ...formData, noIc: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               {/* No ID Pelajar */}
               <div className="space-y-1">
-                <label className="font-bold text-slate-700">No. ID Pelajar <span className="text-rose-500">*</span></label>
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-700">No. ID Pelajar <span className="text-rose-500">*</span></label>
+                  <span className="text-[10px] text-slate-400 font-mono">XXX-XXXX-XXX</span>
+                </div>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. PDA-2502-123"
+                  placeholder="e.g. PDA-2502-021"
                   value={formData.noIdPelajar}
-                  onChange={(e) => setFormData({ ...formData, noIdPelajar: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => setFormData({ ...formData, noIdPelajar: e.target.value.toUpperCase() })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 uppercase font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -1109,6 +1158,17 @@ ${formData.pernahPertandingan === 'Ya' ? `*Butiran:* ${formData.namaPertandingan
               </label>
             </div>
           </div>
+
+          {/* Submit Error Message if any */}
+          {errorMsg && (
+            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-xs text-rose-800 flex items-start gap-3 shadow-xs">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div>
+                <div className="font-bold text-rose-900 text-sm">Sila Semak Borang</div>
+                <div>{errorMsg}</div>
+              </div>
+            </div>
+          )}
 
           {/* Submit Button */}
           <div className="pt-2 text-center">
