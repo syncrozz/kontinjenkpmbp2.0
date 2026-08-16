@@ -44,9 +44,6 @@ export const LogisticsChecklist: React.FC<LogisticsChecklistProps> = ({
         }));
         setItems(formatted);
         localStorage.setItem('kpmbp_soar_checklist', JSON.stringify(formatted));
-      } else {
-        // If Firestore is empty, seed initial checklist to Firestore
-        saveAllChecklistToFirestore(INITIAL_CHECKLIST);
       }
     });
 
