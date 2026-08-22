@@ -22,7 +22,28 @@ export const LogisticsChecklist: React.FC<LogisticsChecklistProps> = ({
     const saved = localStorage.getItem('kpmbp_soar_checklist');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed: ChecklistItem[] = JSON.parse(saved);
+        const hasOutdated = parsed.some(
+          (item) =>
+            item.title.includes('1 Sept 2026') ||
+            item.title.includes('15 Sept 2026') ||
+            item.title.includes('1 September') ||
+            item.title.includes('15 September')
+        );
+        if (hasOutdated) {
+          const updated = parsed.map((item) => {
+            if (item.id === 'c1_sd' || item.title.includes('Street Dakwah: Pendaftaran Nama') || item.title.includes('Street Dakwah: Penyerahan Nama')) {
+              return { ...item, title: 'Street Dakwah: Penyerahan Nama Peserta & ID Pelajar (Due: 10 Sept 2026)' };
+            }
+            if (item.id === 'c3' || item.title.includes('Street Dakwah: Penghantaran Video') || item.title.includes('Street Dakwah: Penyerahan Video')) {
+              return { ...item, title: 'Street Dakwah: Penyerahan Video Pertandingan (Due: 1 Okt 2026, sebelum 5.00 ptg)' };
+            }
+            return item;
+          });
+          localStorage.setItem('kpmbp_soar_checklist', JSON.stringify(updated));
+          return updated;
+        }
+        return parsed;
       } catch {
         return INITIAL_CHECKLIST;
       }

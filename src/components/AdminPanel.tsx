@@ -167,7 +167,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const saved = localStorage.getItem('kpmbp_soar_deadlines');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed: SubmissionDeadlineItem[] = JSON.parse(saved);
+        const hasOutdated = parsed.some(
+          (item) =>
+            item.dueDate.includes('1 Sept 2026') ||
+            item.dueDate.includes('15 Sept 2026') ||
+            item.dueDate.includes('1 September') ||
+            item.dueDate.includes('15 September')
+        );
+        if (hasOutdated) {
+          localStorage.setItem('kpmbp_soar_deadlines', JSON.stringify(SUBMISSION_DEADLINES));
+          return SUBMISSION_DEADLINES;
+        }
+        return parsed;
       } catch (e) {
         console.error(e);
       }

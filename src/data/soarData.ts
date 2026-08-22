@@ -210,18 +210,33 @@ export const EVENTS_DATA: EventDetail[] = [
     theme: 'From Chaos to Calm',
     participantsCount: '5 orang',
     venue: 'Penyerahan Dalam Talian & Saringan Video (KMB)',
-    dateStr: '1 Sept & 15 Sept 2026',
-    submissionDeadline: '1 Sept 2026 (Nama & ID) | 15 Sept 2026 (Video)',
-    description: 'Penghasilan video dakwah kreatif bertemakan "From Chaos to Calm" yang menekankan pendekatan dakwah berhikmah, berempati, santai, dan tidak menghukum masyarakat.',
+    dateStr: '10 Sept & 1 Okt 2026',
+    submissionDeadline: '10 Sept 2026 (Nama & ID) | 1 Okt 2026, sebelum 5.00 ptg (Video)',
+    description: 'Penghasilan video dakwah kreatif bertemakan "From Chaos to Calm" (Dari Kekacauan kepada Ketenangan) yang menggambarkan proses transformasi jiwa daripada keadaan yang penuh kekeliruan, konflik, tekanan, dan ketidakstabilan kepada ketenangan, kedamaian serta keseimbangan hidup yang berpaksi kepada nilai-nilai murni dan petunjuk Ilahi.',
+    backgroundHistory: 'Maksud Tema "From Chaos to Calm":\n“Chaos to Calm” – Dari Kekacauan kepada Ketenangan, menggambarkan sebuah proses transformasi jiwa.\n\nHuraian Tema:\nPerjalanan transformasi jiwa daripada keadaan yang penuh kekeliruan, konflik, tekanan, dan ketidakstabilan kepada ketenangan, kedamaian serta keseimbangan hidup yang berpaksi kepada nilai-nilai murni dan petunjuk Ilahi.\n\nSyarat & Elemen Wajib Video:\n1. Lokasi Penggambaran: Video mestilah dirakam di tempat umum / luar kawasan kolej.\n2. Responden: Wajib melibatkan minimum 3 responden.\n3. Rujukan: Wajib menyertakan dalil Al-Quran / Hadith yang sahih.',
     submissionItems: [
-      'Nama & ID peserta (Keutamaan 1 — Due: 1 Sept 2026)',
-      'Video pertandingan (Keutamaan 3 — Due: 15 Sept 2026)'
+      'Penyerahan Nama Peserta: Nama & ID Pelajar (Due: 10 Sept 2026)',
+      'Penyerahan Video Pertandingan (Due: 1 Okt 2026, sebelum jam 5.00 petang)'
     ],
+    elementsInfo: {
+      mandatory: [
+        'Lokasi Penggambaran: Tempat umum / luar kawasan kolej — WAJIB',
+        'Responden: Minimum 3 responden — WAJIB',
+        'Rujukan: Dalil Al-Quran / Hadith yang sahih — WAJIB'
+      ],
+      additionalTitle: 'Tema Rasmi: “From Chaos to Calm”',
+      additionalOptions: [
+        'Maksud Tema: Transformasi Jiwa dari Kekacauan kepada Ketenangan',
+        'Pendekatan Berhikmah, Berempati, Santai & Tidak Menghukum',
+        'Kualiti Rakaman Full HD',
+        'Karya Asli (AI Dilarang untuk Skrip & Visual Utama)'
+      ]
+    },
     importantReminder: {
-      deadline: '1 SEPT 2026 & 15 SEPT 2026',
+      deadline: '10 SEPT 2026 & 1 OKT 2026 (SEBELUM 5.00 PTG)',
       items: [
-        'Keutamaan 1 (1 Sept 2026): Nama & ID peserta',
-        'Keutamaan 3 (15 Sept 2026): Video pertandingan'
+        'Penyerahan Nama Peserta: Nama & ID Pelajar (10 September 2026)',
+        'Penyerahan Video Pertandingan: 1 Oktober 2026 (Sebelum jam 5.00 petang)'
       ],
       competitionDate: '17 OKTOBER 2026',
       competitionTime: '2.30 PETANG – 5.30 PETANG (SHOWCASE & PENJURIAN)',
@@ -233,21 +248,25 @@ export const EVENTS_DATA: EventDetail[] = [
     leadAdvisorWhatsApp: 'https://wasap.my/60177804852',
     rules: [
       'Maksimum 5 orang ahli dalam pasukan produksi video.',
-      'DEADLINE KEUTAMAAN 1 (1 Sept 2026): Wajib hantar Nama & ID peserta.',
-      'DEADLINE KEUTAMAAN 3 (15 Sept 2026): Wajib hantar Video pertandingan Full HD.',
-      'Format video: Rakaman Full HD berkualiti tinggi diserahkan melalui pautan rasmi.',
+      'PENYERAHAN NAMA PESERTA: Wajib hantar Nama & ID Pelajar selewat-lewatnya pada 10 September 2026.',
+      'PENYERAHAN VIDEO: Tarikh akhir penyerahan video adalah pada 1 Oktober 2026, sebelum jam 5.00 petang.',
+      'LOKASI PENGGAMBARAN: Video mestilah dirakam di tempat umum / luar kawasan kolej.',
+      'RESPONDEN: Wajib melibatkan minimum 3 responden dalam rakaman video.',
+      'RUJUKAN DALIL: Wajib menyertakan dalil Al-Quran / Hadith yang sahih dalam pengisian dakwah.',
+      'TEMA RASMI: "From Chaos to Calm" (Dari Kekacauan kepada Ketenangan) – Perjalanan transformasi jiwa daripada kekeliruan, konflik, dan tekanan kepada ketenangan dan petunjuk Ilahi.',
+      'Format video: Rakaman Full HD berkualiti tinggi diserahkan melalui pautan rasmi sebelum jam 5.00 petang pada 1 Oktober 2026.',
       'Syarat Ketat AI: AI TIDAK DIBENARKAN menghasilkan kandungan utama (skrip/visual). Hanya dibenarkan untuk penyuntingan teknikal seperti penstabilan video atau pengurangan bunyi audio (noise reduction).',
       'Mematuhi etika dakwah berhikmah, menghormati sensitiviti awam dan etika IPMA.'
     ],
     rubric: [
-      { component: 'Kualiti Kandungan & Tema', percentage: 30, description: 'Kejelasan mesej "From Chaos to Calm", jalan cerita, dan daya penarik.' },
-      { component: 'Nilai Dakwah', percentage: 20, description: 'Pendekatan berhikmah, empati, penerapan ajaran Islam tanpa sentimen menghukum.' },
-      { component: 'Kreativiti & Sinematografi', percentage: 15, description: 'Keunikan sudut kamera, penyampaian cerita, dan gaya visual.' },
-      { component: 'Interaksi Masyarakat', percentage: 15, description: 'Keberkesanan mesej menyentuh jiwa penonton & impak sosial.' },
+      { component: 'Kualiti Kandungan & Tema', percentage: 30, description: 'Kejelasan mesej "From Chaos to Calm", ketepatan dalil sahih Al-Quran/Hadith, jalan cerita, dan daya penarik.' },
+      { component: 'Nilai Dakwah', percentage: 20, description: 'Pendekatan berhikmah, empati, penerapan ajaran Islam dengan minimum 3 responden di tempat umum tanpa nada menghukum.' },
+      { component: 'Kreativiti & Sinematografi', percentage: 15, description: 'Keunikan sudut kamera luar kolej, penghayatan transformasi jiwa dari kekacauan kepada ketenangan, dan visual.' },
+      { component: 'Interaksi Masyarakat', percentage: 15, description: 'Keberkesanan temubual responden tempat umum & impak mesej menyentuh jiwa penonton.' },
       { component: 'Kualiti Teknikal Audio & Video', percentage: 10, description: 'Kejelasan audio, suntingan, kejelasan gambar Full HD, & adunan bunyi.' },
-      { component: 'Kerjasama Pasukan', percentage: 10, description: 'Disiplin penyediaan, pematuhan garis panduan, & pengurusan.' }
+      { component: 'Kerjasama Pasukan', percentage: 10, description: 'Disiplin penyediaan, penyerahan tepat sebelum 1 Okt 5.00 ptg, pematuhan garis panduan, & pengurusan.' }
     ],
-    notes: 'Dua tarikh akhir penting: (1) 1 Sept 2026 - Hantar Nama & ID Peserta, (2) 15 Sept 2026 - Hantar Video Pertandingan.',
+    notes: 'Tarikh akhir penyerahan rasmi: (1) 10 September 2026 — Penyerahan Nama Peserta (Nama & ID Pelajar), (2) 1 Oktober 2026 (sebelum jam 5.00 petang) — Penyerahan Video Pertandingan. Elemen wajib: video dirakam di tempat umum/luar kolej, minimum 3 responden, dan dalil Al-Quran/Hadith sahih.',
     iconName: 'Video'
   }
 ];
@@ -265,8 +284,8 @@ export const SUBMISSION_DEADLINES: SubmissionDeadlineItem[] = [
     priority: 1,
     event: 'Short Film (Street Dakwah)',
     eventId: 'street-dakwah',
-    requirement: 'Nama & ID peserta',
-    dueDate: '1 Sept 2026'
+    requirement: 'Penyerahan Nama Peserta (Nama & ID Pelajar)',
+    dueDate: '10 Sept 2026'
   },
   {
     priority: 2,
@@ -279,8 +298,8 @@ export const SUBMISSION_DEADLINES: SubmissionDeadlineItem[] = [
     priority: 3,
     event: 'Short Film (Street Dakwah)',
     eventId: 'street-dakwah',
-    requirement: 'Video pertandingan',
-    dueDate: '15 Sept 2026'
+    requirement: 'Penyerahan Video (sebelum jam 5.00 petang)',
+    dueDate: '1 Okt 2026 (sebelum 5.00 ptg)'
   }
 ];
 
@@ -433,9 +452,9 @@ export const SCHEDULE_DATA: ScheduleItem[] = [
 export const INITIAL_CHECKLIST: ChecklistItem[] = [
   { id: 'c1', category: 'Dokumen', title: 'Surat Kelulusan Peserta oleh Pengarah Pusat KPMBP', targetRole: 'Pegawai', completed: true },
   { id: 'c2', category: 'Dokumen', title: 'Senarai Nama Rasmi 41 Ahli Kontinjen (35 Pelajar, 4 Pegawai, 2 Pemandu)', targetRole: 'Pegawai', completed: true },
-  { id: 'c1_sd', category: 'Dokumen', title: 'Street Dakwah: Pendaftaran Nama & ID Peserta (Due: 1 Sept 2026)', targetRole: 'Pelajar', completed: true },
+  { id: 'c1_sd', category: 'Dokumen', title: 'Street Dakwah: Penyerahan Nama Peserta & ID Pelajar (Due: 10 Sept 2026)', targetRole: 'Pelajar', completed: true },
   { id: 'c2_ti', category: 'Teknikal', title: 'Teater Islamik: Penghantaran Peserta, Watak, Skrip & Keperluan Produksi (Due: 10 Sept 2026)', targetRole: 'Pelajar', completed: false },
-  { id: 'c3', category: 'Teknikal', title: 'Street Dakwah: Penghantaran Video Pertandingan (Due: 15 Sept 2026)', targetRole: 'Pelajar', completed: false },
+  { id: 'c3', category: 'Teknikal', title: 'Street Dakwah: Penyerahan Video Pertandingan (Due: 1 Okt 2026, sebelum 5.00 ptg)', targetRole: 'Pelajar', completed: false },
   { id: 'c4', category: 'Peralatan', title: 'Pemeriksaan Set Alatan Muzik & Props Teater Islamik', targetRole: 'Pelajar', completed: false },
   { id: 'c5', category: 'Logistik', title: 'Penyelenggaraan & Pemeriksaan Bas Kontinjen KPMBP', targetRole: 'Pemandu', completed: true },
   { id: 'c6', category: 'Kebajikan', title: 'Peti Pertolongan Cemas (First Aid Kit) & Ubat-Ubatan Kontinjen', targetRole: 'Pegawai', completed: false },
@@ -451,7 +470,7 @@ export const RULES_GUIDELINES: RuleGuideline[] = [
     content: [
       'Setiap institusi IPMA MARA menghantar 1 kontinjen rasmi seramai 41 orang (35 Pelajar, 4 Pegawai Pengiring, 2 Pemandu).',
       'Penyertaan pelajar mestilah mendapat kelulusan bertulis rasmi daripada Pengarah Pusat.',
-      'Semua tarikh penyerahan bahan pertandingan (seperti video Street Dakwah) yang ditetapkan oleh urus setia wajib dipatuhi.',
+      'Semua tarikh penyerahan bahan pertandingan (seperti nama peserta sebelum 10 Sept 2026 dan video Street Dakwah sebelum 1 Okt 2026, 5.00 petang) yang ditetapkan oleh urus setia wajib dipatuhi.',
       'Keputusan panel penilai yang dilantik adalah MUKTAMAD dan tidak boleh diganggu gugat.'
     ]
   },
@@ -461,14 +480,14 @@ export const RULES_GUIDELINES: RuleGuideline[] = [
     content: [
       'Menjaga tatasusila, etika berpakaian menutup aurat dan kemas, serta akhlak terpuji sepanjang festival.',
       'Menekankan nilai kerja berpasukan, disiplin, komunikasi berkesan, dan profesionalisme.',
-      'Pendekatan dakwah (seperti Street Dakwah) hendaklah secara berhikmah, berempati, santai, dan elakkan nada menghukum.'
+      'Pendekatan dakwah (seperti Street Dakwah bertemakan "From Chaos to Calm") hendaklah secara berhikmah, berempati, santai, melibatkan minimum 3 responden di tempat umum, berlandaskan dalil Al-Quran/Hadith sahih, dan elakkan nada menghukum.'
     ]
   },
   {
     title: 'Penggunaan Teknologi & Etika AI',
     category: 'Syarat Teknologi',
     content: [
-      'Video Street Dakwah hendaklah dirakam dalam kualiti Full HD dan diserahkan melalui pautan rasmi.',
+      'Video Street Dakwah hendaklah dirakam di tempat umum/luar kawasan kolej dalam kualiti Full HD dan diserahkan sebelum 1 Oktober 2026, jam 5.00 petang.',
       'PENGGUNAAN AI (Artificial Intelligence): AI TIDAK DIBENARKAN sama sekali untuk menghasilkan kandungan utama (skrip, visual, atau audio generated).',
       'Penggunaan AI hanya dibenarkan untuk tujuan pemprosesan teknikal khas seperti penstabilan video (video stabilization) atau pengurangan hingar audio (audio noise reduction).'
     ]
@@ -480,7 +499,21 @@ export function getEventDeadlines(event: EventDetail): { label: string; dueDate:
   try {
     const saved = localStorage.getItem('kpmbp_soar_deadlines');
     if (saved) {
-      allDeadlines = JSON.parse(saved);
+      const parsed: SubmissionDeadlineItem[] = JSON.parse(saved);
+      // Auto-migrate if local storage contains outdated dates
+      const hasOutdated = parsed.some(
+        (item) =>
+          item.dueDate.includes('1 Sept 2026') ||
+          item.dueDate.includes('15 Sept 2026') ||
+          item.dueDate.includes('1 September') ||
+          item.dueDate.includes('15 September')
+      );
+      if (hasOutdated) {
+        allDeadlines = SUBMISSION_DEADLINES;
+        localStorage.setItem('kpmbp_soar_deadlines', JSON.stringify(SUBMISSION_DEADLINES));
+      } else {
+        allDeadlines = parsed;
+      }
     }
   } catch (e) {
     console.error(e);

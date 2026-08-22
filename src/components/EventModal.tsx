@@ -126,32 +126,45 @@ export const EventModal: React.FC<EventModalProps> = ({ event, onClose, onOpenCa
             </div>
           )}
 
-          {/* Performance Elements Section */}
+          {/* Performance / Required Elements Section */}
           {event.elementsInfo && (
             <div className="bg-indigo-50/80 border border-indigo-200 rounded-xl p-4 space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-indigo-700" />
-                Elemen Pertandingan Pementasan
+                {event.id === 'street-dakwah' ? 'Elemen Wajib Video & Syarat Pertandingan' : 'Elemen Pertandingan Pementasan'}
               </h3>
-              <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-900">
-                <span className="bg-indigo-600 text-white px-3 py-1 rounded-lg">
-                  Lakonan — WAJIB
-                </span>
-                <span className="text-indigo-800 font-extrabold">+</span>
-                <span className="bg-indigo-100 text-indigo-900 px-3 py-1 rounded-lg border border-indigo-300">
-                  {event.elementsInfo.additionalTitle}
-                </span>
-              </div>
-              <p className="text-xs text-slate-600">
-                Pementasan WAJIB mempunyai Lakonan, serta sekurang-kurangnya 2 daripada elemen tambahan berikut:
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {event.elementsInfo.additionalOptions.map((opt, i) => (
-                  <span key={i} className="bg-white border border-indigo-200 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-800 shadow-2xs">
-                    • {opt}
-                  </span>
-                ))}
-              </div>
+              
+              {/* Mandatory Pills */}
+              {event.elementsInfo.mandatory && event.elementsInfo.mandatory.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="text-[11px] font-extrabold uppercase tracking-wide text-indigo-950">
+                    Syarat / Elemen Wajib:
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {event.elementsInfo.mandatory.map((mItem, mIdx) => (
+                      <span key={mIdx} className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-xs flex items-center gap-1.5">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        {mItem}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {event.elementsInfo.additionalTitle && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="text-[11px] font-extrabold uppercase tracking-wide text-indigo-950">
+                    {event.elementsInfo.additionalTitle}:
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {event.elementsInfo.additionalOptions.map((opt, i) => (
+                      <span key={i} className="bg-white border border-indigo-200 px-2.5 py-1 rounded-md text-xs font-semibold text-slate-800 shadow-2xs">
+                        • {opt}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
