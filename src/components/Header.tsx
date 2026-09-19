@@ -1,7 +1,23 @@
 import React from 'react';
-import { SOAR_METADATA } from '../data/soarData';
+import { SOAR_METADATA, SOAR_PHASES } from '../data/soarData';
 import { KpmbpLogo } from './KpmbpLogo';
-import { Calendar, Compass, ShieldAlert, CheckSquare, Calculator, Layers, Bus, UserPlus, Lock, Unlock, ShieldCheck, Sparkles } from 'lucide-react';
+import { 
+  Calendar, 
+  Compass, 
+  ShieldAlert, 
+  CheckSquare, 
+  Calculator, 
+  Layers, 
+  Bus, 
+  UserPlus, 
+  Lock, 
+  Unlock, 
+  ShieldCheck, 
+  Sparkles,
+  Award,
+  UserCheck
+} from 'lucide-react';
+import { OperationsPhaseState, ContingentUserProfile } from '../types';
 
 interface HeaderProps {
   activeTab: string;
@@ -10,6 +26,8 @@ interface HeaderProps {
   setSearchQuery: (query: string) => void;
   onOpenAdmin?: () => void;
   isAdminLoggedIn?: boolean;
+  currentUser?: ContingentUserProfile;
+  phaseState?: OperationsPhaseState;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -18,14 +36,21 @@ export const Header: React.FC<HeaderProps> = ({
   searchQuery,
   setSearchQuery,
   onOpenAdmin,
-  isAdminLoggedIn
+  isAdminLoggedIn,
+  currentUser,
+  phaseState
 }) => {
+  const currentPhase = SOAR_PHASES.find(p => p.id === phaseState?.activePhaseId) || SOAR_PHASES[0];
+  const userRole = currentUser?.role || (isAdminLoggedIn ? 'admin' : 'public');
+
   const tabs: { id: string; label: string; icon: any; highlight?: boolean }[] = [
     { id: 'overview', label: 'Dashboard', icon: Compass },
     { id: 'events', label: 'Acara (5)', icon: Layers },
     { id: 'schedule', label: 'Tentatif', icon: Calendar },
     { id: 'calculator', label: 'Kalkulator', icon: Calculator },
     { id: 'checklist', label: 'Checklist', icon: CheckSquare },
+    { id: 'talent', label: 'Borang Bakat', icon: UserPlus },
+    { id: 'guidelines', label: 'Syarat & Dokumen', icon: ShieldAlert },
   ];
 
   return (
@@ -56,6 +81,20 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="text-[9px] sm:text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 px-1.5 sm:px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
                   SOAR '26
                 </span>
+                {currentPhase && (
+                  <button
+                    onClick={() => {
+                      setActiveTab('overview');
+                      const elem = document.getElementById('phase-operations-hub');
+                      if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="hidden xl:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-800 border border-slate-200 transition-colors cursor-pointer"
+                    title={`Fasa ${currentPhase.phaseNumber}: ${currentPhase.title}`}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Fasa {currentPhase.phaseNumber}: {currentPhase.title}</span>
+                  </button>
+                )}
               </div>
               <p className="text-[10px] sm:text-xs text-blue-600 font-medium tracking-wide hidden md:block mt-0.5">
                 Kolej Profesional MARA Bandar Penawar
@@ -93,25 +132,52 @@ export const Header: React.FC<HeaderProps> = ({
               })}
             </nav>
 
-            {/* Single Admin Mode button */}
+            {/* Contingent Access & Admin Mode button */}
             {onOpenAdmin && (
               <button
                 onClick={onOpenAdmin}
-                title="Mod Pentadbir (Admin Mode)"
+                title={
+                  userRole !== 'public'
+                    ? `Pusat Operasi ${currentUser?.badge || userRole} - Klik untuk buka`
+                    : 'Akses Kontinjen / Mod Pentadbir'
+                }
                 className={`group relative h-9 px-3 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-xs ${
-                  isAdminLoggedIn
-                    ? 'bg-emerald-600 text-white hover:bg-emerald-700 ring-2 ring-emerald-300/60'
+                  userRole === 'admin'
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-700 ring-2 ring-emerald-300/60 shadow-emerald-600/20'
+                    : userRole === 'advisor'
+                    ? 'bg-amber-600 text-white hover:bg-amber-700 ring-2 ring-amber-300/60 shadow-amber-600/20'
+                    : userRole === 'pic'
+                    ? 'bg-purple-600 text-white hover:bg-purple-700 ring-2 ring-purple-300/60 shadow-purple-600/20'
+                    : userRole === 'member'
+                    ? 'bg-cyan-600 text-white hover:bg-cyan-700 ring-2 ring-cyan-300/60 shadow-cyan-600/20'
                     : 'bg-slate-900 text-amber-300 hover:bg-slate-800 ring-2 ring-amber-400/40 hover:scale-102'
                 }`}
               >
-                {isAdminLoggedIn ? (
-                  <Unlock className="w-4 h-4 shrink-0 text-emerald-200" />
+                {userRole === 'admin' ? (
+                  <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-200" />
+                ) : userRole === 'advisor' ? (
+                  <Award className="w-4 h-4 shrink-0 text-amber-200" />
+                ) : userRole === 'pic' ? (
+                  <Layers className="w-4 h-4 shrink-0 text-purple-200" />
+                ) : userRole === 'member' ? (
+                  <UserCheck className="w-4 h-4 shrink-0 text-cyan-200" />
                 ) : (
                   <Lock className="w-4 h-4 shrink-0 text-amber-400" />
                 )}
-                <span className="whitespace-nowrap">
-                  {isAdminLoggedIn ? 'Admin Active' : 'Admin Mode'}
+                <span className="whitespace-nowrap font-bold">
+                  {userRole === 'admin'
+                    ? 'Admin Kontinjen'
+                    : userRole === 'advisor'
+                    ? 'Advisor'
+                    : userRole === 'pic'
+                    ? (currentUser?.eventAssigned ? `PIC ${currentUser.eventAssigned}` : 'Event PIC')
+                    : userRole === 'member'
+                    ? 'Ahli Kontinjen'
+                    : 'Akses Kontinjen'}
                 </span>
+                {userRole !== 'public' && (
+                  <span className="w-2 h-2 rounded-full bg-white/80 animate-pulse shrink-0" />
+                )}
               </button>
             )}
           </div>

@@ -1,4 +1,15 @@
-import { EventDetail, ContingentMemberGroup, ScheduleItem, ChecklistItem, RuleGuideline } from '../types';
+import { 
+  EventDetail, 
+  ContingentMemberGroup, 
+  ScheduleItem, 
+  ChecklistItem, 
+  RuleGuideline, 
+  SoarPhaseId, 
+  DashboardModuleVisibility,
+  ContingentUserRole,
+  ContingentUserProfile,
+  AccessRoleDefinition
+} from '../types';
 
 export const SOAR_METADATA = {
   title: 'SOAR IPMA 2026',
@@ -544,5 +555,460 @@ export function getEventDeadlines(event: EventDetail): { label: string; dueDate:
   }
 
   return [];
+}
+
+// ---------------------------------------------------------------------------
+// SOAR CONTINGENT OPERATIONAL PHASES (SES v4.5 STANDARD)
+// ---------------------------------------------------------------------------
+import { SoarPhaseConfig, OperationsPhaseState } from '../types';
+
+export const SOAR_PHASES: SoarPhaseConfig[] = [
+  {
+    id: 'phase_01',
+    phaseNumber: '01',
+    title: 'Pencarian & Pemilihan Bakat',
+    subtitle: 'Uji Bakat Terbuka & Saringan Awal Pelajar KPMBP',
+    period: 'Ogos – Awal Sept 2026',
+    statusBadge: 'Fasa Terkini: Uji Bakat Terbuka',
+    priorityFocus: 'Pengumpulan pendaftaran uji bakat pelajar berbakat bagi 5 acara utama dan saringan awal penasihat.',
+    description: 'Fasa pembukaan bagi mengenal pasti bakat pelajar KPMBP dalam seni lakon, muzik akustik & band, tarian Zapin, dan pengucapan dakwah pentas.',
+    keyObjectives: [
+      'Hebahan meluas uji bakat terbuka kepada semua pelajar KPM Bandar Penawar',
+      'Penerimaan pendaftaran online & pautan video demonstrasi bakat',
+      'Sesi uji bakat bersemuka bersama pensyarah penasihat acara',
+      'Pemilihan awal kuota 35 pelajar terbaik bagi membentuk kontinjen rasmi'
+    ],
+    recommendedTab: 'talent',
+    ctaText: 'Daftar Uji Bakat Sekarang',
+    ctaTab: 'talent',
+    colorScheme: {
+      badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      badgeText: 'text-emerald-700',
+      border: 'border-emerald-500',
+      accent: 'emerald',
+      glow: 'shadow-emerald-500/10',
+      lightBg: 'from-emerald-50 via-white to-blue-50/40'
+    }
+  },
+  {
+    id: 'phase_02',
+    phaseNumber: '02',
+    title: 'Pengesahan & Perancangan Acara',
+    subtitle: 'Penetapan Roster Kontinjen & Penyelarasan Teknikal',
+    period: 'Pertengahan Sept 2026',
+    statusBadge: 'Pengesahan Roster & Teknikal',
+    priorityFocus: 'Pemuktamadan 35 peserta, penetapan watak teater, senarai lagu band, dan borang pendaftaran rasmi.',
+    description: 'Fasa mengunci senarai 41 orang kontinjen (35 pelajar + 4 pegawai + 2 pemandu), perincian skrip teater, serta pematuhan syarat penganjur.',
+    keyObjectives: [
+      'Penyerahan senarai nama peserta Street Dakwah (Tarikh akhir: 10 Sept 2026)',
+      'Pengesahan watak teater, susunan instrumen band & gubahan lagu symphonic duo',
+      'Semakan keselarasan syarat pertandingan & rubrik pemarkahan rasmi SOAR',
+      'Mesyuarat penyelarasan pertama kontinjen bersama Pengurusan KPMBP'
+    ],
+    recommendedTab: 'events',
+    ctaText: 'Semak Syarat Acara & Roster',
+    ctaTab: 'events',
+    colorScheme: {
+      badgeBg: 'bg-blue-100 text-blue-800 border-blue-300',
+      badgeText: 'text-blue-700',
+      border: 'border-blue-500',
+      accent: 'blue',
+      glow: 'shadow-blue-500/10',
+      lightBg: 'from-blue-50 via-white to-indigo-50/40'
+    }
+  },
+  {
+    id: 'phase_03',
+    phaseNumber: '03',
+    title: 'Latihan & Persiapan Pasukan',
+    subtitle: 'Kem Latihan Intensif, Rakaman & Raptai Pentas',
+    period: 'September – Awal Oktober 2026',
+    statusBadge: 'Latihan Intensif Berjadual',
+    priorityFocus: 'Latihan berkala setiap pasukan, penyediaan rakaman video, serta semakan kriteria rubrik pemarkahan rasmi menuju ke SOAR 2026 (15–18 Oktober 2026).',
+    description: 'Fasa pembentukan kualiti persembahan, keserasian tempo muzik, penghayatan emosi teater, dan kelancaran langkah tari Zapin.',
+    keyObjectives: [
+      'Penyerahan rakaman video Street Dakwah sebelum 1 Okt 2026, jam 5:00 petang',
+      'Latihan berkala mingguan & hujung minggu mengikut jadual studio/dewan',
+      'Simulasi pemarkahan menggunakan Kalkulator Rubrik SOAR',
+      'Raptai penuh persembahan bersama penasihat & panel jemputan'
+    ],
+    recommendedTab: 'calculator',
+    ctaText: 'Simulasi Skor Rubrik Pertandingan',
+    ctaTab: 'calculator',
+    colorScheme: {
+      badgeBg: 'bg-amber-100 text-amber-900 border-amber-300',
+      badgeText: 'text-amber-700',
+      border: 'border-amber-500',
+      accent: 'amber',
+      glow: 'shadow-amber-500/10',
+      lightBg: 'from-amber-50 via-white to-orange-50/40'
+    }
+  },
+  {
+    id: 'phase_04',
+    phaseNumber: '04',
+    title: 'Persiapan Akhir & Kesiapsiagaan',
+    subtitle: 'Penyelarasan Logistik, Dokumen & Taklimat Pelepasan',
+    period: '10 – 14 Okt 2026',
+    statusBadge: 'Kesiapsiagaan Logistik & Pelepasan',
+    priorityFocus: 'Semakan 38 senarai semak logistik, dokumen peribadi, instrumen, bilik penginapan, dan taklimat kontinjen.',
+    description: 'Fasa audit kesiapsiagaan kontinjen sebelum bertolak ke Banting. Menjamin tiada peralatan, dokumen atau instrumen tertinggal.',
+    keyObjectives: [
+      'Pengesahan 100% senarai semak logistik, dokumen peribadi & surat pelepasan waris',
+      'Pemeriksaan teknikal instrumen muzik, prop teater & busana tradisional Zapin',
+      'Taklimat rasmi pelepasan kontinjen oleh Pengarah KPMBP',
+      'Pengagihan baju kontinjen, tag beg & pembahagian bas/penginapan'
+    ],
+    recommendedTab: 'checklist',
+    ctaText: 'Semak Senarai Semak Logistik',
+    ctaTab: 'checklist',
+    colorScheme: {
+      badgeBg: 'bg-violet-100 text-violet-800 border-violet-300',
+      badgeText: 'text-violet-700',
+      border: 'border-violet-500',
+      accent: 'violet',
+      glow: 'shadow-violet-500/10',
+      lightBg: 'from-violet-50 via-white to-indigo-50/40'
+    }
+  },
+  {
+    id: 'phase_05',
+    phaseNumber: '05',
+    title: 'Operasi Pertandingan SOAR',
+    subtitle: 'Hari Festival Langsung di KMB Banting & JKKN Seremban',
+    period: '15 – 18 Okt 2026',
+    statusBadge: 'Operasi Langsung SOAR 2026',
+    priorityFocus: 'Penyelarasan masa bertanding (call-time), jadual harian, pergerakan bas antara venue, dan pemantauan kebajikan.',
+    description: 'Fasa pelaksanaan misi sebenar. Fokus penuh kepada ketepatan masa pertandingan di KMB Banting dan Teater Islamik di JKKN Seremban.',
+    keyObjectives: [
+      'Pelepasan bas kontinjen dari KPMBP & pendaftaran di Kolej MARA Banting (15 Okt)',
+      'Pertandingan Teater Islamik di Auditorium JKKN Seremban (16 Okt)',
+      'Pertandingan BOTB, Duo, Zapin & Street Dakwah di pentas KMB Banting (16-17 Okt)',
+      'Majlis Penutupan Rasmi & Pengumuman Pemenang Festival SOAR 2026 (18 Okt)'
+    ],
+    recommendedTab: 'schedule',
+    ctaText: 'Lihat Jadual Harian & Call-Time',
+    ctaTab: 'schedule',
+    colorScheme: {
+      badgeBg: 'bg-rose-100 text-rose-800 border-rose-300',
+      badgeText: 'text-rose-700',
+      border: 'border-rose-500',
+      accent: 'rose',
+      glow: 'shadow-rose-500/10',
+      lightBg: 'from-rose-50 via-white to-amber-50/40'
+    }
+  },
+  {
+    id: 'phase_06',
+    phaseNumber: '06',
+    title: 'Pasca SOAR & Penilaian',
+    subtitle: 'Dokumentasi Keputusan, Post-Mortem & Majlis Apresiasi',
+    period: '19 Okt 2026 Seterusnya',
+    statusBadge: 'Dokumentasi & Apresiasi',
+    priorityFocus: 'Kompilasi keputusan pertandingan, laporan post-mortem bersama pegawai, dan majlis apresiasi kontinjen.',
+    description: 'Fasa penutup dan refleksi kejayaan kontinjen KPMBP. Mengabadikan memori, menilai keberkesanan strategi, dan perancangan masa depan.',
+    keyObjectives: [
+      'Kepulangan selamat kontinjen ke KPM Bandar Penawar',
+      'Pengarkiban keputusan rasmi pertandingan, video persembahan & galeri gambar',
+      'Sesi penilaian pasca-acara (post-mortem) bersama semua penasihat acara',
+      'Penyerahan sijil penyertaan, cenderamata penghargaan & majlis kesyukuran'
+    ],
+    recommendedTab: 'overview',
+    ctaText: 'Lihat Ringkasan Kontinjen',
+    ctaTab: 'overview',
+    colorScheme: {
+      badgeBg: 'bg-slate-100 text-slate-800 border-slate-300',
+      badgeText: 'text-slate-700',
+      border: 'border-slate-500',
+      accent: 'slate',
+      glow: 'shadow-slate-500/10',
+      lightBg: 'from-slate-100 via-white to-blue-50/30'
+    }
+  }
+];
+
+export interface ModuleMeta {
+  key: keyof DashboardModuleVisibility;
+  title: string;
+  category: string;
+  description: string;
+  tabTarget: string;
+}
+
+export const DASHBOARD_MODULE_DEFS: ModuleMeta[] = [
+  {
+    key: 'events',
+    title: '5 Acara Pertandingan & Roster',
+    category: 'Acara',
+    description: 'Paparan kad acara teater, zapin, duo, band & dakwah beserta senarai peserta & venue.',
+    tabTarget: 'events'
+  },
+  {
+    key: 'contingentOverview',
+    title: 'Ringkasan Pasukan & Statistik Kontinjen',
+    category: 'Kontinjen',
+    description: 'Pecahan 41 orang (35 atlet/pelajar, 4 pegawai, 2 pemandu bas) dan analisis kekuatan.',
+    tabTarget: 'overview'
+  },
+  {
+    key: 'schedule',
+    title: 'Tentatif & Jadual 4 Hari SOAR',
+    category: 'Jadual',
+    description: 'Jadual harian 15–18 Oktober 2026 di KMB Banting & JKKN Seremban.',
+    tabTarget: 'schedule'
+  },
+  {
+    key: 'calculator',
+    title: 'Kalkulator Rubrik Penjurian',
+    category: 'Teknikal',
+    description: 'Alat simulasi pemarkahan rasmi 5 acara untuk latihan & penanda aras kualiti.',
+    tabTarget: 'calculator'
+  },
+  {
+    key: 'checklist',
+    title: 'Senarai Semak 38 Item Logistik',
+    category: 'Logistik',
+    description: 'Status pematuhan dokumen, bas, penginapan, kostum dan instrumen.',
+    tabTarget: 'checklist'
+  },
+  {
+    key: 'deadlines',
+    title: 'Alert Due Date Submisi Acara',
+    category: 'Penyelarasan',
+    description: 'Amaran tarikh akhir penyerahan skrip, video & dokumen pertandingan.',
+    tabTarget: 'overview'
+  },
+  {
+    key: 'guidelines',
+    title: 'Syarat & Garis Panduan Am',
+    category: 'Peraturan',
+    description: 'Pematuhan etika, tema, format pakaian dan syarat penganjuran SOAR IPMA 2026.',
+    tabTarget: 'guidelines'
+  },
+  {
+    key: 'talent',
+    title: 'Borang Pendaftaran / Uji Bakat Terbuka',
+    category: 'Bakat',
+    description: 'Modul pendaftaran calon atlet & penghantaran link video uji bakat (Fasa 01).',
+    tabTarget: 'talent'
+  }
+];
+
+export const DEFAULT_MODULE_VISIBILITY: DashboardModuleVisibility = {
+  events: true,
+  contingentOverview: true,
+  schedule: true,
+  calculator: true,
+  checklist: true,
+  deadlines: true,
+  guidelines: true,
+  talent: false // Telah selesai fasa uji bakat; boleh diakses pada tab 'Borang Bakat' bila-bila masa
+};
+
+export const PHASE_MODULE_PRESETS: Record<SoarPhaseId, DashboardModuleVisibility> = {
+  phase_01: {
+    talent: true,
+    events: true,
+    deadlines: true,
+    guidelines: true,
+    calculator: true,
+    contingentOverview: true,
+    schedule: true,
+    checklist: false
+  },
+  phase_02: {
+    events: true,
+    contingentOverview: true,
+    deadlines: true,
+    guidelines: true,
+    calculator: true,
+    schedule: true,
+    checklist: true,
+    talent: false
+  },
+  phase_03: {
+    events: true,
+    contingentOverview: true,
+    schedule: true,
+    calculator: true,
+    checklist: true,
+    deadlines: true,
+    guidelines: true,
+    talent: false
+  },
+  phase_04: {
+    checklist: true,
+    schedule: true,
+    contingentOverview: true,
+    deadlines: true,
+    events: true,
+    guidelines: true,
+    calculator: false,
+    talent: false
+  },
+  phase_05: {
+    schedule: true,
+    events: true,
+    contingentOverview: true,
+    checklist: true,
+    deadlines: false,
+    guidelines: true,
+    calculator: true,
+    talent: false
+  },
+  phase_06: {
+    contingentOverview: true,
+    events: true,
+    schedule: true,
+    checklist: true,
+    guidelines: false,
+    calculator: true,
+    deadlines: false,
+    talent: false
+  }
+};
+
+export const DEFAULT_OPERATIONS_PHASE: OperationsPhaseState = {
+  activePhaseId: 'phase_03',
+  announcement: 'Peringatan Penyelaras: Kontinjen KPMBP kini berada dalam Fasa 03 (Latihan & Persiapan Pasukan) menuju ke kejohanan SOAR 2026 pada 15–18 Oktober 2026. Sila pastikan semua pasukan melengkapkan jadual latihan intensif dan semakan rubrik penjurian!',
+  visibleModules: DEFAULT_MODULE_VISIBILITY,
+  updatedAt: new Date().toISOString(),
+  updatedBy: 'Penyelaras Kontinjen KPMBP'
+};
+
+// Contingent Access System Role Definitions (SES v5.0)
+export const CONTINGENT_ACCESS_ROLES: AccessRoleDefinition[] = [
+  {
+    role: 'public',
+    label: 'Akses Awam',
+    title: 'Pelawat / Warga KPMBP',
+    category: 'Terbuka',
+    passcode: '',
+    colorScheme: {
+      bg: 'bg-slate-100',
+      text: 'text-slate-700',
+      border: 'border-slate-300',
+      badgeBg: 'bg-slate-200',
+      badgeText: 'text-slate-800'
+    },
+    description: 'Akses paparan terbuka festival untuk seluruh warga kolej, pelajar, dan penonton awam.',
+    privileges: [
+      'Paparan suapan utama & pengumuman fasa',
+      'Panduan 5 acara pertandingan SOAR 2026',
+      'Jadual tentatif 4 hari Banting & Seremban',
+      'Borang pendaftaran uji bakat kontinjen',
+      'Dokumen syarat rasmi & kalkulator rubrik'
+    ]
+  },
+  {
+    role: 'member',
+    label: 'Ahli Kontinjen',
+    title: 'Peserta / Krew Kontinjen KPMBP',
+    category: 'Peserta Pelajar',
+    passcode: '2026',
+    altCode: 'MEMBER',
+    colorScheme: {
+      bg: 'bg-cyan-50',
+      text: 'text-cyan-900',
+      border: 'border-cyan-300',
+      badgeBg: 'bg-cyan-100',
+      badgeText: 'text-cyan-800'
+    },
+    description: 'Akses khas untuk 35 pelajar kontinjen KPMBP yang berdaftar sebagai peserta atau krew produksi acara.',
+    privileges: [
+      'Status pengesahan identiti ahli kontinjen',
+      'Senarai semak logistik peribadi (Pelajar & Semua)',
+      'Jadual pergerakan bas & penginapan di KMB',
+      'Talian kecemasan & WhatsApp pegawai pengiring',
+      'Ikrar & garis panduan disiplin kontinjen'
+    ]
+  },
+  {
+    role: 'pic',
+    label: 'Event PIC',
+    title: 'Pegawai Pengurus Acara',
+    category: 'Pengurusan Acara',
+    passcode: '4040',
+    altCode: 'PIC-SOAR',
+    colorScheme: {
+      bg: 'bg-purple-50',
+      text: 'text-purple-900',
+      border: 'border-purple-300',
+      badgeBg: 'bg-purple-100',
+      badgeText: 'text-purple-800'
+    },
+    description: 'Akses untuk pensyarah pengurus acara (Teater, Symphonic Duo, Zapin, BOTB, Street Dakwah) mengurus pasukan.',
+    privileges: [
+      'Penyeliaan calon & data pendaftaran mengikut acara',
+      'Penjejakan tarikh akhir submisi & keperluan pementasan',
+      'Semakan rubrik pemarkahan khusus acara',
+      'Hubungan terus dengan ketua penasihat acara'
+    ]
+  },
+  {
+    role: 'advisor',
+    label: 'Advisor',
+    title: 'Pensyarah Pengiring / Jurulatih',
+    category: 'Pegawai Kontinjen',
+    passcode: '7788',
+    altCode: 'ADV-KPMBP',
+    colorScheme: {
+      bg: 'bg-amber-50',
+      text: 'text-amber-900',
+      border: 'border-amber-300',
+      badgeBg: 'bg-amber-100',
+      badgeText: 'text-amber-800'
+    },
+    description: 'Akses untuk 4 pensyarah pengiring dan jurulatih teknikal kontinjen memantau kebajikan dan latihan.',
+    privileges: [
+      'Pemantauan kebajikan 41 pax kontinjen KPMBP',
+      'Semakan rubrik penuh & analisis penjurian 5 acara',
+      'Senarai semak logistik pegawai & penginapan',
+      'Direktori perhubungan rasmi urus setia & WhatsApp'
+    ]
+  },
+  {
+    role: 'admin',
+    label: 'Master Admin',
+    title: 'Penyelaras Utama Kontinjen',
+    category: 'Pentadbir Sistem',
+    passcode: '5313',
+    altCode: 'ADMIN',
+    colorScheme: {
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-900',
+      border: 'border-emerald-300',
+      badgeBg: 'bg-emerald-100',
+      badgeText: 'text-emerald-800'
+    },
+    description: 'Akses penuh kepimpinan kontinjen untuk mengawal operasi, menyiarkan arahan, dan mengeksport data.',
+    privileges: [
+      'Kawalan 6 Fasa Operasi & Pengumuman Rasmi',
+      'Kawalan paparan 8 modul dashboard utama',
+      'Buka sulit IC & muat turun fail CSV / JSON',
+      'Pengurusan penuh master checklist & deadline alerts'
+    ]
+  }
+];
+
+export const DEFAULT_PUBLIC_USER: ContingentUserProfile = {
+  role: 'public',
+  name: 'Pelawat Awam',
+  title: 'Akses Awam (Pelawat)',
+  badge: 'Awam'
+};
+
+export function verifyContingentPasscode(code: string): { role: ContingentUserRole; roleDef: AccessRoleDefinition } | null {
+  const clean = code.trim();
+  if (!clean) return null;
+
+  const found = CONTINGENT_ACCESS_ROLES.find(
+    (r) => r.role !== 'public' && (r.passcode === clean || (r.altCode && r.altCode.toUpperCase() === clean.toUpperCase()))
+  );
+
+  if (found) {
+    return { role: found.role, roleDef: found };
+  }
+  return null;
 }
 

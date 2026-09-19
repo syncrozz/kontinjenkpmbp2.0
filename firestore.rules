@@ -1,11 +1,27 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Talent Submissions: Public can submit with validated fields, reads allowed for contingent management
     match /talent_submissions/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create: if request.resource.data.namaPenuh is string
+                    && request.resource.data.namaPenuh.size() > 2
+                    && request.resource.data.noIc is string;
+      allow update, delete: if resource != null;
     }
+    
+    // Contingent Operations Checklist: Open for reading, structured writes
     match /soar_checklist/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create, update: if request.resource.data.title is string;
+      allow delete: if resource != null;
+    }
+    
+    // Global Operations Phase & Module Visibility Config: Public read, structured admin write
+    match /contingent_config/{docId} {
+      allow read: if true;
+      allow write: if request.resource.data.activePhaseId is string;
     }
   }
 }

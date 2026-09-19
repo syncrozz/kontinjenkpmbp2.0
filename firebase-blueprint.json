@@ -35,6 +35,15 @@
         { "name": "targetRole", "type": "string", "required": true },
         { "name": "completed", "type": "boolean", "required": true }
       ]
+    },
+    {
+      "name": "contingent_config",
+      "fields": [
+        { "name": "activePhaseId", "type": "string", "required": true },
+        { "name": "announcement", "type": "string", "required": false },
+        { "name": "updatedAt", "type": "string", "required": false },
+        { "name": "updatedBy", "type": "string", "required": false }
+      ]
     }
   ]
 }

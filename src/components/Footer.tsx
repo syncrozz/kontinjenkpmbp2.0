@@ -99,7 +99,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectTab }) => {
 
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span>
               © 2026 Kontinjen KPMBP.{' '}
               <a
@@ -111,11 +111,16 @@ export const Footer: React.FC<FooterProps> = ({ onSelectTab }) => {
                 By Syncrozz
               </a>
             </span>
+            <span className="text-slate-700 hidden sm:inline">&bull;</span>
+            <span className="inline-flex items-center gap-1 text-[10px] text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/60 font-mono">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+              <span>v2026.4.5</span>
+            </span>
           </div>
 
           <button
             onClick={scrollToTop}
-            className="flex items-center gap-1 text-blue-400 font-bold hover:underline"
+            className="flex items-center gap-1 text-blue-400 font-bold hover:underline cursor-pointer"
           >
             <span>Ke Atas</span>
             <ArrowUp className="w-3.5 h-3.5" />

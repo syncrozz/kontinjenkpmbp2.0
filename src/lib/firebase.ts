@@ -9,6 +9,14 @@ import {
   deleteDoc, 
   serverTimestamp 
 } from 'firebase/firestore';
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  User as FirebaseUser
+} from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
@@ -17,8 +25,32 @@ export const db = firebaseConfig.firestoreDatabaseId
   ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
   : getFirestore(app);
 
+export const auth = getAuth(app);
+export const googleAuthProvider = new GoogleAuthProvider();
+googleAuthProvider.setCustomParameters({ prompt: 'select_account' });
+
+export async function signInWithGoogleAuth(): Promise<{ user: FirebaseUser | null; error?: string }> {
+  try {
+    const result = await signInWithPopup(auth, googleAuthProvider);
+    return { user: result.user };
+  } catch (error: any) {
+    console.warn('Firebase Google Sign-In notice:', error);
+    return { user: null, error: error?.message || 'Gagal log masuk dengan akaun Google.' };
+  }
+}
+
+export async function signOutGoogleAuth(): Promise<void> {
+  try {
+    await firebaseSignOut(auth);
+  } catch (err) {
+    console.warn('Firebase sign out error:', err);
+  }
+}
+
 export const SUBMISSIONS_COLLECTION = 'talent_submissions';
 export const CHECKLIST_COLLECTION = 'soar_checklist';
+export const CONFIG_COLLECTION = 'contingent_config';
+export const OPERATIONS_PHASE_DOC = 'operations_phase';
 
 export interface FirestoreQuotaStatus {
   isQuotaExceeded: boolean;
@@ -199,4 +231,112 @@ export async function saveAllChecklistToFirestore(items: any[]) {
     console.warn('Penyelarasan semua senarai semak Firestore gagal:', error);
   }
 }
+
+// Operations Phase Management API
+import { OperationsPhaseState } from '../types';
+import { DEFAULT_OPERATIONS_PHASE } from '../data/soarData';
+
+export function getInitialOperationsPhase(): OperationsPhaseState {
+  try {
+    const local = localStorage.getItem('kpmbp_operations_phase');
+    if (local) {
+      const parsed = JSON.parse(local);
+      if (parsed && parsed.activePhaseId) {
+        // Automatically migrate if using old default placeholder
+        if (parsed.activePhaseId === 'phase_01' && parsed.announcement?.includes('Pendaftaran Uji Bakat Terbuka')) {
+          return DEFAULT_OPERATIONS_PHASE;
+        }
+        return parsed;
+      }
+    }
+  } catch {}
+  return DEFAULT_OPERATIONS_PHASE;
+}
+
+export function subscribeToOperationsPhase(callback: (phaseState: OperationsPhaseState) => void) {
+  try {
+    const docRef = doc(db, CONFIG_COLLECTION, OPERATIONS_PHASE_DOC);
+    return onSnapshot(
+      docRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data() as OperationsPhaseState;
+          try {
+            localStorage.setItem('kpmbp_operations_phase', JSON.stringify(data));
+          } catch {}
+          callback(data);
+        } else {
+          try {
+            const local = localStorage.getItem('kpmbp_operations_phase');
+            if (local) {
+              const parsed = JSON.parse(local);
+              if (parsed.activePhaseId === 'phase_01' && parsed.announcement?.includes('Pendaftaran Uji Bakat Terbuka')) {
+                callback(DEFAULT_OPERATIONS_PHASE);
+                return;
+              }
+              callback(parsed);
+              return;
+            }
+          } catch {}
+          callback(DEFAULT_OPERATIONS_PHASE);
+        }
+      },
+      (err) => {
+        handleFirestoreListenerError('operations_phase snapshot listener', err);
+        try {
+          const local = localStorage.getItem('kpmbp_operations_phase');
+          if (local) {
+            const parsed = JSON.parse(local);
+            if (parsed.activePhaseId === 'phase_01' && parsed.announcement?.includes('Pendaftaran Uji Bakat Terbuka')) {
+              callback(DEFAULT_OPERATIONS_PHASE);
+              return;
+            }
+            callback(parsed);
+            return;
+          }
+        } catch {}
+        callback(DEFAULT_OPERATIONS_PHASE);
+      }
+    );
+  } catch (err) {
+    handleFirestoreListenerError('subscribeToOperationsPhase init', err);
+    try {
+      const local = localStorage.getItem('kpmbp_operations_phase');
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (parsed.activePhaseId === 'phase_01' && parsed.announcement?.includes('Pendaftaran Uji Bakat Terbuka')) {
+          callback(DEFAULT_OPERATIONS_PHASE);
+          return () => {};
+        }
+        callback(parsed);
+        return () => {};
+      }
+    } catch {}
+    callback(DEFAULT_OPERATIONS_PHASE);
+    return () => {};
+  }
+}
+
+export async function saveOperationsPhaseToFirestore(state: OperationsPhaseState) {
+  try {
+    localStorage.setItem('kpmbp_operations_phase', JSON.stringify(state));
+  } catch (e) {
+    console.warn('Gagal menyimpan cache fasa operasi tempatan:', e);
+  }
+
+  try {
+    const docRef = doc(db, CONFIG_COLLECTION, OPERATIONS_PHASE_DOC);
+    await setDoc(
+      docRef,
+      {
+        ...state,
+        updatedAt: state.updatedAt || new Date().toISOString()
+      },
+      { merge: true }
+    );
+  } catch (error) {
+    console.warn('Simpanan fasa operasi Firestore gagal (disimpan di storan tempatan):', error);
+  }
+}
+
 

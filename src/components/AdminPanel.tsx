@@ -15,6 +15,7 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Eye, 
+  EyeOff,
   Copy, 
   FileSpreadsheet, 
   LogOut,
@@ -27,26 +28,67 @@ import {
   Filter,
   RotateCcw,
   Delete,
-  Clock
+  Clock,
+  Compass,
+  Target,
+  Megaphone,
+  Sliders,
+  ArrowRight,
+  ShieldAlert,
+  LayoutGrid,
+  Check,
+  Award,
+  Layers,
+  UserCheck
 } from 'lucide-react';
 import { TalentFormData } from './TalentForm';
-import { ChecklistItem } from '../types';
-import { INITIAL_CHECKLIST, EVENTS_DATA, SUBMISSION_DEADLINES, SubmissionDeadlineItem } from '../data/soarData';
+import { 
+  ChecklistItem, 
+  OperationsPhaseState, 
+  SoarPhaseId, 
+  DashboardModuleVisibility,
+  ContingentUserRole,
+  ContingentUserProfile
+} from '../types';
+import { 
+  INITIAL_CHECKLIST, 
+  EVENTS_DATA, 
+  SUBMISSION_DEADLINES, 
+  SubmissionDeadlineItem, 
+  SOAR_PHASES,
+  DASHBOARD_MODULE_DEFS,
+  PHASE_MODULE_PRESETS,
+  DEFAULT_MODULE_VISIBILITY,
+  CONTINGENT_ACCESS_ROLES,
+  DEFAULT_PUBLIC_USER
+} from '../data/soarData';
 import { 
   subscribeToTalentSubmissions, 
   deleteTalentSubmissionFromFirestore, 
   subscribeToChecklist, 
   saveChecklistItemToFirestore, 
   deleteChecklistItemFromFirestore, 
-  saveAllChecklistToFirestore 
+  saveAllChecklistToFirestore,
+  saveOperationsPhaseToFirestore 
 } from '../lib/firebase';
+import { RoleSelectorGate } from './access/RoleSelectorGate';
+import { MemberWorkspace } from './access/MemberWorkspace';
+import { EventPicWorkspace } from './access/EventPicWorkspace';
+import { AdvisorWorkspace } from './access/AdvisorWorkspace';
+import { AccessManagementView } from './access/AccessManagementView';
 
 interface AdminPanelProps {
   isOpen: boolean;
   onClose: () => void;
   isAdminLoggedIn: boolean;
   setIsAdminLoggedIn: (val: boolean) => void;
+  currentUser?: ContingentUserProfile;
+  onUpdateCurrentUser?: (profile: ContingentUserProfile) => void;
+  onLogout?: () => void;
   onUpdateChecklist?: () => void;
+  initialTab?: 'phases' | 'submissions' | 'checklist' | 'deadlines' | 'access';
+  phaseState: OperationsPhaseState;
+  onUpdatePhase: (newState: OperationsPhaseState) => void;
 }
 
 // Sample initial submissions if none exist so admin has data to inspect immediately
@@ -140,17 +182,70 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onClose,
   isAdminLoggedIn,
   setIsAdminLoggedIn,
-  onUpdateChecklist
+  currentUser,
+  onUpdateCurrentUser,
+  onLogout,
+  onUpdateChecklist,
+  initialTab = 'phases',
+  phaseState,
+  onUpdatePhase
 }) => {
   const [pinInput, setPinInput] = useState('');
   const [loginError, setLoginError] = useState('');
-  const [adminTab, setAdminTab] = useState<'submissions' | 'checklist' | 'deadlines'>('submissions');
+  const [isSwitchingRole, setIsSwitchingRole] = useState(false);
+  const [adminTab, setAdminTab] = useState<'phases' | 'submissions' | 'checklist' | 'deadlines' | 'access'>(initialTab);
 
-  // Submissions State
+  const activeRole: ContingentUserRole = currentUser?.role || (isAdminLoggedIn ? 'admin' : 'public');
+
+  const handleSelectRole = (role: ContingentUserRole, name?: string, eventAssigned?: string) => {
+    setIsSwitchingRole(false);
+    if (role === 'admin') {
+      setIsAdminLoggedIn(true);
+    } else {
+      setIsAdminLoggedIn(false);
+    }
+
+    const roleDef = CONTINGENT_ACCESS_ROLES.find(r => r.role === role) || CONTINGENT_ACCESS_ROLES[0];
+    const newProfile: ContingentUserProfile = {
+      role,
+      name: name || roleDef.title,
+      title: roleDef.title,
+      badge: roleDef.label,
+      eventAssigned,
+      accessGrantedAt: new Date().toISOString()
+    };
+
+    if (onUpdateCurrentUser) {
+      onUpdateCurrentUser(newProfile);
+    }
+
+    showToast(`Akses Disahkan: ${roleDef.label}`);
+  };
+
+  // Sync tab if initialTab changes
+  useEffect(() => {
+    if (initialTab) {
+      setAdminTab(initialTab);
+    }
+  }, [initialTab]);
+
+  // Phase Control State
+  const [announcementInput, setAnnouncementInput] = useState(phaseState?.announcement || '');
+  const [coordinatorInput, setCoordinatorInput] = useState(phaseState?.updatedBy || 'Penyelaras Kontinjen KPMBP');
+
+  useEffect(() => {
+    if (phaseState) {
+      setAnnouncementInput(phaseState.announcement || '');
+      setCoordinatorInput(phaseState.updatedBy || 'Penyelaras Kontinjen KPMBP');
+    }
+  }, [phaseState]);
+
+  // Submissions State & IC privacy shield
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [searchSub, setSearchSub] = useState('');
   const [filterAcara, setFilterAcara] = useState('Semua');
   const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null);
+  const [showFullIC, setShowFullIC] = useState<boolean>(false);
 
   // Checklist State
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
@@ -203,6 +298,114 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(''), 3000);
+  };
+
+  // Operations Phase & Dashboard Modules State (SES v4.5)
+  const currentVisibleModules: DashboardModuleVisibility = {
+    ...DEFAULT_MODULE_VISIBILITY,
+    ...(phaseState?.visibleModules || {})
+  };
+
+  const ANNOUNCEMENT_PRESETS = [
+    {
+      label: 'Fasa 03: Latihan & Rubrik',
+      text: 'Peringatan Penyelaras: Kontinjen KPMBP kini berada dalam Fasa 03 (Latihan & Persiapan Pasukan) menuju ke kejohanan SOAR 2026 pada 15–18 Oktober 2026. Sila pastikan semua pasukan melengkapkan jadual latihan intensif dan semakan rubrik penjurian!'
+    },
+    {
+      label: 'Fasa 03: Penyerahan Video',
+      text: 'Peringatan Penting: Rakaman video rasmi Street Dakwah hendaklah diserahkan sebelum 1 Oktober 2026, jam 5:00 petang. Sila berhubung dengan penyelaras teknikal sekiranya ada kekangan.'
+    },
+    {
+      label: 'Fasa 04: Logistik & Taklimat',
+      text: 'Perhatian Kontinjen: Sila semak senarai semak logistik peribadi, borang kebenaran dan instrumen sebelum sesi taklimat akhir pergerakan ke Kolej MARA Banting.'
+    },
+    {
+      label: 'Fasa 05: Operasi SOAR',
+      text: 'Selamat Bertanding Kontinjen KPMBP! Patuhi jadual tentatif harian dan arahan pengurus pasukan sepanjang berada di KMB Banting & JKKN Seremban. Harumkan nama kolej!'
+    }
+  ];
+
+  const handleToggleModule = async (moduleKey: keyof DashboardModuleVisibility) => {
+    const newModules: DashboardModuleVisibility = {
+      ...currentVisibleModules,
+      [moduleKey]: !currentVisibleModules[moduleKey]
+    };
+    const updatedState: OperationsPhaseState = {
+      ...phaseState,
+      visibleModules: newModules,
+      updatedAt: new Date().toISOString(),
+      updatedBy: coordinatorInput.trim() || 'Penyelaras Kontinjen KPMBP'
+    };
+    onUpdatePhase(updatedState);
+    await saveOperationsPhaseToFirestore(updatedState);
+    showToast(`Modul "${moduleKey}" kini ${newModules[moduleKey] ? 'DIPAPARKAN' : 'DISEMBUNYIKAN'} di dashboard utama!`);
+  };
+
+  const handleApplyPresetForPhase = async (phaseId: SoarPhaseId) => {
+    const preset = PHASE_MODULE_PRESETS[phaseId] || DEFAULT_MODULE_VISIBILITY;
+    const updatedState: OperationsPhaseState = {
+      ...phaseState,
+      visibleModules: preset,
+      updatedAt: new Date().toISOString(),
+      updatedBy: coordinatorInput.trim() || 'Penyelaras Kontinjen KPMBP'
+    };
+    onUpdatePhase(updatedState);
+    await saveOperationsPhaseToFirestore(updatedState);
+    showToast(`Modul disyorkan bagi Fasa ${SOAR_PHASES.find(p => p.id === phaseId)?.phaseNumber} telah diterapkan!`);
+  };
+
+  const handleShowAllModules = async () => {
+    const allVisible: DashboardModuleVisibility = {
+      events: true,
+      contingentOverview: true,
+      schedule: true,
+      calculator: true,
+      checklist: true,
+      talent: true,
+      guidelines: true,
+      deadlines: true
+    };
+    const updatedState: OperationsPhaseState = {
+      ...phaseState,
+      visibleModules: allVisible,
+      updatedAt: new Date().toISOString(),
+      updatedBy: coordinatorInput.trim() || 'Penyelaras Kontinjen KPMBP'
+    };
+    onUpdatePhase(updatedState);
+    await saveOperationsPhaseToFirestore(updatedState);
+    showToast('Semua modul kini dipaparkan di dashboard utama!');
+  };
+
+  // Operations Phase Actions
+  const handleSwitchPhase = async (phaseId: SoarPhaseId, applyPreset = true) => {
+    const targetPhase = SOAR_PHASES.find((p) => p.id === phaseId);
+    const updatedModules = applyPreset 
+      ? (PHASE_MODULE_PRESETS[phaseId] || currentVisibleModules)
+      : currentVisibleModules;
+
+    const updatedState: OperationsPhaseState = {
+      ...phaseState,
+      activePhaseId: phaseId,
+      visibleModules: updatedModules,
+      updatedAt: new Date().toISOString(),
+      updatedBy: coordinatorInput.trim() || 'Penyelaras Kontinjen KPMBP'
+    };
+    onUpdatePhase(updatedState);
+    await saveOperationsPhaseToFirestore(updatedState);
+    showToast(`Fasa operasi berjaya ditukar ke: Fasa ${targetPhase?.phaseNumber} - ${targetPhase?.title}!`);
+  };
+
+  const handleSaveAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const updatedState: OperationsPhaseState = {
+      ...phaseState,
+      announcement: announcementInput.trim(),
+      updatedAt: new Date().toISOString(),
+      updatedBy: coordinatorInput.trim() || 'Penyelaras Kontinjen KPMBP'
+    };
+    onUpdatePhase(updatedState);
+    await saveOperationsPhaseToFirestore(updatedState);
+    showToast('Pengumuman / Arahan rasmi fasa berjaya disimpan!');
   };
 
   const handleStartAddDeadline = () => {
@@ -340,6 +543,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleLogout = () => {
     setIsAdminLoggedIn(false);
+    setIsSwitchingRole(false);
+    if (onLogout) {
+      onLogout();
+    } else if (onUpdateCurrentUser) {
+      onUpdateCurrentUser(DEFAULT_PUBLIC_USER);
+    }
+    showToast('Telah kembali ke Akses Awam.');
     onClose();
   };
 
@@ -510,32 +720,74 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 p-4 sm:p-5 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-cyan-300">
-              {isAdminLoggedIn ? <Unlock className="w-5 h-5 text-emerald-400" /> : <Lock className="w-5 h-5 text-amber-400" />}
+              {activeRole === 'admin' ? (
+                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              ) : activeRole === 'advisor' ? (
+                <Award className="w-5 h-5 text-amber-400" />
+              ) : activeRole === 'pic' ? (
+                <Layers className="w-5 h-5 text-purple-400" />
+              ) : activeRole === 'member' ? (
+                <UserCheck className="w-5 h-5 text-cyan-400" />
+              ) : (
+                <Lock className="w-5 h-5 text-amber-400" />
+              )}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-base sm:text-lg text-white font-display">
-                  Admin Mode
+                  {activeRole === 'admin'
+                    ? 'Pusat Pentadbiran Kontinjen'
+                    : activeRole === 'advisor'
+                    ? 'Pusat Operasi Advisor'
+                    : activeRole === 'pic'
+                    ? 'Pusat Kawalan Event PIC'
+                    : activeRole === 'member'
+                    ? 'Portal Ahli Kontinjen KPMBP'
+                    : 'Sistem Akses Kontinjen SOAR 2026'}
                 </h3>
-                {isAdminLoggedIn && (
-                  <span className="text-[10px] uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
-                    Akses Aktif
+                {activeRole !== 'public' && (
+                  <span className={`text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full font-bold border ${
+                    activeRole === 'admin'
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                      : activeRole === 'advisor'
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                      : activeRole === 'pic'
+                      ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                      : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
+                  }`}>
+                    {currentUser?.badge || (activeRole === 'admin' ? 'Master Admin' : activeRole)}
                   </span>
                 )}
               </div>
+              <p className="text-[11px] text-slate-300">
+                {activeRole !== 'public'
+                  ? `Pengguna: ${currentUser?.name || 'Pegawai / Ahli Kontinjen'}`
+                  : 'Pengesahan peranan bagi urus setia, penasihat, PIC acara & peserta'}
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0 ml-2">
-            {isAdminLoggedIn && (
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs sm:text-sm font-extrabold transition-all border border-rose-400/50 shadow-md shadow-rose-950/40 cursor-pointer shrink-0"
-                title="Log Keluar dari Mod Admin"
-              >
-                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                <span className="whitespace-nowrap">Log Keluar</span>
-              </button>
+            {activeRole !== 'public' && (
+              <>
+                <button
+                  onClick={() => setIsSwitchingRole((prev) => !prev)}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white text-xs font-bold transition-all border border-white/15 cursor-pointer"
+                  title="Tukar Peranan Pengguna"
+                >
+                  <UserCheck className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{isSwitchingRole ? 'Kembali' : 'Tukar Peranan'}</span>
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs sm:text-sm font-extrabold transition-all border border-rose-400/50 shadow-md shadow-rose-950/40 cursor-pointer shrink-0"
+                  title="Log Keluar ke Akses Awam"
+                >
+                  <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                  <span className="whitespace-nowrap">Log Keluar</span>
+                </button>
+              </>
             )}
             <button
               onClick={onClose}
@@ -547,91 +799,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         </div>
 
-        {/* CASE 1: UNAUTHENTICATED (PIN ENTRY) */}
-        {!isAdminLoggedIn ? (
-          <div className="p-6 sm:p-10 flex flex-col items-center justify-center space-y-6 text-center max-w-md mx-auto my-auto">
-            <div className="w-16 h-16 rounded-3xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-600 shadow-inner">
-              <Key className="w-8 h-8" />
-            </div>
-
-            <div className="space-y-1">
-              <h4 className="text-xl font-extrabold text-slate-900">Sila Masukkan PIN Pentadbir</h4>
-              <p className="text-xs text-slate-500">
-                Akses ini terhad untuk Jawatankuasa SOAR KPMBP sahaja.
-              </p>
-            </div>
-
-            <form onSubmit={handleLogin} className="w-full space-y-4">
-              <div className="space-y-1">
-                <input
-                  type="password"
-                  maxLength={10}
-                  autoFocus
-                  placeholder="Masukkan PIN"
-                  value={pinInput}
-                  onChange={(e) => setPinInput(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-2xl px-4 py-3 text-center text-xl tracking-widest font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-extrabold shadow-inner"
-                />
-              </div>
-
-              {loginError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-bold flex items-center justify-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{loginError}</span>
-                </div>
-              )}
-
-              {/* On-screen Numeric Keypad */}
-              <div className="bg-slate-100/90 p-3 rounded-2xl border border-slate-200 space-y-2">
-                <div className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider text-center">
-                  Keypad PIN Nombor
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => handleKeypadPress(num)}
-                      className="py-3 bg-white hover:bg-blue-50 active:bg-blue-100 text-slate-900 font-black text-lg sm:text-xl rounded-xl border border-slate-200/80 shadow-sm active:scale-95 transition-all cursor-pointer select-none"
-                    >
-                      {num}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={handleKeypadClear}
-                    className="py-3 bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-700 font-extrabold text-xs rounded-xl border border-slate-300 shadow-sm active:scale-95 transition-all cursor-pointer select-none"
-                    title="Padam Semua"
-                  >
-                    Padam (C)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleKeypadPress('0')}
-                    className="py-3 bg-white hover:bg-blue-50 active:bg-blue-100 text-slate-900 font-black text-lg sm:text-xl rounded-xl border border-slate-200/80 shadow-sm active:scale-95 transition-all cursor-pointer select-none"
-                  >
-                    0
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleKeypadBackspace}
-                    className="py-3 bg-amber-100 hover:bg-amber-200 active:bg-amber-300 text-amber-900 font-extrabold text-sm rounded-xl border border-amber-300 shadow-sm active:scale-95 transition-all cursor-pointer flex items-center justify-center select-none"
-                    title="Padam 1 Aksara"
-                  >
-                    <Delete className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-blue-600/25 transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Luluskan Akses Admin</span>
-              </button>
-            </form>
-          </div>
+        {/* ROLE-BASED WORKSPACES */}
+        {activeRole === 'public' || isSwitchingRole ? (
+          <RoleSelectorGate
+            onSelectRole={handleSelectRole}
+            currentRole={activeRole}
+          />
+        ) : activeRole === 'member' ? (
+          <MemberWorkspace
+            currentUser={currentUser || { role: 'member', name: 'Ahli Kontinjen KPMBP', title: 'Peserta / Krew', badge: 'Ahli Kontinjen' }}
+          />
+        ) : activeRole === 'pic' ? (
+          <EventPicWorkspace
+            currentUser={currentUser || { role: 'pic', name: 'Event PIC', title: 'Pegawai Pengurus Acara', badge: 'Event PIC' }}
+            submissions={submissions}
+          />
+        ) : activeRole === 'advisor' ? (
+          <AdvisorWorkspace
+            currentUser={currentUser || { role: 'advisor', name: 'Advisor Kontinjen', title: 'Pensyarah Pengiring', badge: 'Advisor' }}
+            checklistItems={checklistItems}
+            onToggleChecklist={handleToggleChecklistStatus}
+            submissionsCount={submissions.length}
+          />
         ) : (
           /* CASE 2: AUTHENTICATED ADMIN DASHBOARD */
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden bg-slate-50">
@@ -639,6 +828,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             {/* Top Admin Nav Tabs */}
             <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 shrink-0">
               <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setAdminTab('phases')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    adminTab === 'phases'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <Compass className="w-4 h-4" />
+                  <span>Kawalan Fasa Operasi (6 Fasa)</span>
+                </button>
+
                 <button
                   onClick={() => setAdminTab('submissions')}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -674,10 +875,39 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <Clock className="w-4 h-4 text-amber-950" />
                   <span>Edit Due Date Submission ({deadlines.length})</span>
                 </button>
+
+                <button
+                  onClick={() => setAdminTab('access')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    adminTab === 'access'
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                      : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200'
+                  }`}
+                >
+                  <ShieldCheck className="w-4 h-4 text-emerald-300" />
+                  <span>Akses & Kuasa Sesi</span>
+                </button>
+
+                <button
+                  onClick={() => setIsSwitchingRole(true)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition-all cursor-pointer"
+                  title="Uji Peranan Akses Kontinjen Lain"
+                >
+                  <UserCheck className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Uji Peranan Lain</span>
+                </button>
               </div>
 
               {adminTab === 'submissions' && (
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowFullIC(!showFullIC)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300 transition-all cursor-pointer"
+                    title={showFullIC ? 'Sembunyikan sebahagian nombor IC' : 'Paparkan nombor IC penuh'}
+                  >
+                    {showFullIC ? <EyeOff className="w-3.5 h-3.5 text-slate-600" /> : <Eye className="w-3.5 h-3.5 text-blue-600" />}
+                    <span>{showFullIC ? 'Topengkan IC' : 'Papar IC Penuh'}</span>
+                  </button>
                   <button
                     onClick={handleExportCSV}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
@@ -740,6 +970,305 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               )}
             </div>
 
+            {/* TAB CONTENT 0: OPERATIONS PHASE CONTROL (SES v4.5) */}
+            {adminTab === 'phases' && (
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+                {/* Intro Hero Card */}
+                <div className="bg-linear-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-2xl p-5 sm:p-6 text-white shadow-md border border-blue-800/60">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1.5">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/30 text-blue-200 border border-blue-400/30">
+                        <Compass className="w-3.5 h-3.5 text-blue-300" />
+                        <span>Sistem Kawalan Fasa Operasi Global Kontinjen KPMBP</span>
+                      </div>
+                      <h3 className="text-xl sm:text-2xl font-black tracking-tight font-display">
+                        Fasa Semasa: Fasa {SOAR_PHASES.find(p => p.id === phaseState?.activePhaseId)?.phaseNumber || '01'} - {SOAR_PHASES.find(p => p.id === phaseState?.activePhaseId)?.title}
+                      </h3>
+                      <p className="text-xs text-blue-200 max-w-2xl leading-relaxed">
+                        Perubahan fasa di sini berkuat kuasa serta-merta untuk seluruh kontinjen. Ia mengawal maklumat keutamaan, fokus tindakan (CTA), dan garis masa yang dipaparkan kepada semua pelajar dan pegawai.
+                      </p>
+                    </div>
+                    <div className="shrink-0 flex sm:flex-col items-center sm:items-end justify-between gap-2">
+                      <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-xs font-extrabold shadow-inner">
+                        <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                        Fasa {SOAR_PHASES.find(p => p.id === phaseState?.activePhaseId)?.phaseNumber || '01'} Aktif
+                      </span>
+                      {phaseState?.updatedAt && (
+                        <span className="text-[10px] text-blue-300">
+                          Kemaskini: {new Date(phaseState.updatedAt).toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Announcement Editor Form */}
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-amber-100 text-amber-800">
+                        <Megaphone className="w-5 h-5 text-amber-700" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">
+                          Peringatan & Arahan Rasmi Penyelaras Kontinjen (Live Banner)
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          Arahan ini akan disiarkan secara langsung kepada semua pelawat dan peserta portal bagi fasa aktif.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSaveAnnouncement} className="space-y-3">
+                    <div>
+                      <textarea
+                        rows={3}
+                        value={announcementInput}
+                        onChange={(e) => setAnnouncementInput(e.target.value)}
+                        placeholder="Contoh: Peringatan Penyelaras: Kontinjen KPMBP kini berada dalam Fasa 03 (Latihan & Persiapan Pasukan) menuju ke kejohanan SOAR 2026 pada 15–18 Oktober 2026..."
+                        className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm text-slate-900 focus:ring-2 focus:ring-blue-600 focus:outline-none leading-relaxed"
+                      />
+                    </div>
+
+                    {/* Quick Announcement Presets */}
+                    <div className="space-y-1.5 pt-1">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                        Templat Pengumuman Pantas:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {ANNOUNCEMENT_PRESETS.map((p, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setAnnouncementInput(p.text)}
+                            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 transition-colors cursor-pointer"
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-slate-600 shrink-0">Dikeluarkan oleh:</span>
+                        <input
+                          type="text"
+                          value={coordinatorInput}
+                          onChange={(e) => setCoordinatorInput(e.target.value)}
+                          placeholder="Penyelaras Kontinjen KPMBP"
+                          className="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600 font-semibold"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>Simpan & Siarkan Pengumuman</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                {/* Dashboard Modules Visibility Control */}
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-blue-100 text-blue-800">
+                        <LayoutGrid className="w-5 h-5 text-blue-700" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                          <span>Kawalan Paparan Modul Dashboard Utama (Portal Overview)</span>
+                          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                            {Object.values(currentVisibleModules).filter(Boolean).length} / {DASHBOARD_MODULE_DEFS.length} Modul Aktif
+                          </span>
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          Tentukan modul yang dipaparkan pada suapan halaman utama mengikut fasa operasi. Modul yang ditutup tetap boleh diakses melalui menu navigasi di atas.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleApplyPresetForPhase(phaseState?.activePhaseId || 'phase_03')}
+                        className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Cadangan Fasa Semasa</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleShowAllModules}
+                        className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-slate-600" />
+                        <span>Paparkan Semua</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Modules Switch Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {DASHBOARD_MODULE_DEFS.map((mod) => {
+                      const isVisible = !!currentVisibleModules[mod.key];
+
+                      return (
+                        <div
+                          key={mod.key}
+                          onClick={() => handleToggleModule(mod.key)}
+                          className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                            isVisible
+                              ? 'bg-blue-50/40 border-blue-300 shadow-2xs'
+                              : 'bg-slate-50/60 border-slate-200 opacity-70 hover:opacity-100'
+                          }`}
+                        >
+                          <div className="space-y-1 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-xs sm:text-sm text-slate-900">
+                                {mod.title}
+                              </span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-white text-slate-600 border border-slate-200">
+                                {mod.category}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-500 leading-relaxed">
+                              {mod.description}
+                            </p>
+                            <div className="text-[10px] text-blue-600 font-medium pt-0.5 flex items-center gap-1">
+                              <span>Akses Navigasi:</span>
+                              <span className="font-bold underline">Tab {mod.tabTarget}</span>
+                            </div>
+                          </div>
+
+                          {/* Toggle Switch */}
+                          <div className="shrink-0 pt-0.5">
+                            <div
+                              className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 ${
+                                isVisible ? 'bg-emerald-600' : 'bg-slate-300'
+                              }`}
+                            >
+                              <div
+                                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 flex items-center justify-center ${
+                                  isVisible ? 'translate-x-5' : 'translate-x-0'
+                                }`}
+                              >
+                                {isVisible && <Check className="w-2.5 h-2.5 text-emerald-600 stroke-[3]" />}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 6 Operational Phases Grid */}
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 font-display">
+                      Pilihan 6 Fasa Operasi Kontinjen (Tukar Status Global)
+                    </h4>
+                    <span className="text-xs text-slate-500">
+                      Klik butang <strong>"Aktifkan Fasa Ini"</strong> untuk mengubah fasa portal utama
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {SOAR_PHASES.map((phase) => {
+                      const isActive = phase.id === phaseState?.activePhaseId;
+
+                      return (
+                        <div
+                          key={phase.id}
+                          className={`rounded-2xl border p-4 sm:p-5 flex flex-col justify-between transition-all ${
+                            isActive
+                              ? 'bg-blue-50/80 border-blue-500 shadow-md ring-2 ring-blue-500/20'
+                              : 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-xs'
+                          }`}
+                        >
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="px-2 py-0.5 rounded text-[11px] font-mono font-black bg-slate-100 text-slate-700 border border-slate-200">
+                                FASA {phase.phaseNumber}
+                              </span>
+                              {isActive ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-600 text-white shadow-xs">
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  SEDANG AKTIF
+                                </span>
+                              ) : (
+                                <span className="text-[11px] font-semibold text-slate-400">
+                                  {phase.period}
+                                </span>
+                              )}
+                            </div>
+
+                            <div>
+                              <h5 className="font-extrabold text-sm sm:text-base text-slate-900 leading-snug">
+                                {phase.title}
+                              </h5>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                {phase.subtitle}
+                              </p>
+                            </div>
+
+                            <div className="bg-white rounded-xl p-3 border border-slate-100 text-xs text-slate-700 space-y-2">
+                              <div>
+                                <span className="font-bold text-slate-900">Keutamaan: </span>
+                                <span className="text-slate-600">{phase.priorityFocus}</span>
+                              </div>
+                              <div className="pt-2 border-t border-slate-100">
+                                <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider block mb-1">
+                                  Objektif Utama:
+                                </span>
+                                <ul className="space-y-1">
+                                  {phase.keyObjectives.slice(0, 2).map((obj, oi) => (
+                                    <li key={oi} className="flex items-start gap-1.5 text-[11px] text-slate-600">
+                                      <span className="text-blue-600 font-bold">•</span>
+                                      <span className="line-clamp-1">{obj}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                            <div className="text-[11px] text-slate-500">
+                              Tab Fokus: <span className="font-bold text-slate-700">{phase.recommendedTab}</span>
+                            </div>
+
+                            {isActive ? (
+                              <button
+                                disabled
+                                className="px-3.5 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-xs border border-emerald-300 cursor-default flex items-center gap-1.5"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                                <span>Fasa Semasa</span>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleSwitchPhase(phase.id)}
+                                className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                              >
+                                <span>Aktifkan Fasa Ini</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* TAB CONTENT 1: SUBMISSIONS MANAGER */}
             {adminTab === 'submissions' && (
               <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
@@ -801,7 +1330,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               <td className="p-3.5 font-mono text-slate-400 text-[11px]">{idx + 1}</td>
                               <td className="p-3.5">
                                 <div className="font-bold text-slate-900">{sub.namaPenuh}</div>
-                                <div className="text-[11px] text-slate-500 font-mono">{sub.noIdPelajar} • {sub.noTelefon}</div>
+                                <div className="text-[11px] text-slate-500 font-mono">
+                                  {sub.noIdPelajar} • IC: {showFullIC ? (sub.noIc || '-') : (sub.noIc ? sub.noIc.slice(0, 9) + '••••' : '-')} • {sub.noTelefon}
+                                </div>
                               </td>
                               <td className="p-3.5">
                                 <div>{sub.programPengajian}</div>
@@ -1033,6 +1564,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
             )}
+
+            {/* TAB CONTENT 4: ACCESS & AUTHORIZATION MANAGEMENT */}
+            {adminTab === 'access' && (
+              <AccessManagementView onShowToast={showToast} />
+            )}
           </div>
         )}
       </div>
@@ -1048,7 +1584,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   Butiran Penuh Calon Bakat
                 </span>
                 <h3 className="text-xl font-extrabold text-slate-900 mt-1">{selectedSubmission.namaPenuh}</h3>
-                <p className="text-xs text-slate-500 font-mono">{selectedSubmission.noIdPelajar} • IC: {selectedSubmission.noIc}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs text-slate-500 font-mono">
+                    {selectedSubmission.noIdPelajar} • IC: {showFullIC ? (selectedSubmission.noIc || '-') : (selectedSubmission.noIc ? selectedSubmission.noIc.slice(0, 9) + '••••' : '-')}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowFullIC(!showFullIC)}
+                    className="text-[10px] font-bold text-blue-600 hover:text-blue-800 underline"
+                  >
+                    {showFullIC ? 'Topengkan' : 'Papar'}
+                  </button>
+                </div>
               </div>
               <button
                 onClick={() => setSelectedSubmission(null)}
