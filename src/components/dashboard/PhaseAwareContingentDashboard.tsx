@@ -24,7 +24,8 @@ import {
   HeartHandshake,
   Circle,
   Megaphone,
-  Filter
+  Filter,
+  Lock
 } from 'lucide-react';
 import { 
   ContingentUserProfile, 
@@ -45,6 +46,7 @@ interface PhaseAwareContingentDashboardProps {
   phaseState: OperationsPhaseState;
   onNavigateTab: (tabId: string) => void;
   onOpenAdminWorkspace?: (tab?: string) => void;
+  onOpenRoleSelector?: () => void;
   isCompactModal?: boolean;
 }
 
@@ -114,6 +116,7 @@ export const PhaseAwareContingentDashboard: React.FC<PhaseAwareContingentDashboa
   phaseState,
   onNavigateTab,
   onOpenAdminWorkspace,
+  onOpenRoleSelector,
   isCompactModal = false
 }) => {
   const activePhase = SOAR_PHASES.find((p) => p.id === phaseState.activePhaseId) || SOAR_PHASES[2];
@@ -128,6 +131,9 @@ export const PhaseAwareContingentDashboard: React.FC<PhaseAwareContingentDashboa
 
   const displayedPhase = SOAR_PHASES.find((p) => p.id === selectedPhaseId) || activePhase;
   const isPreviewingOtherPhase = displayedPhase.id !== activePhase.id;
+
+  // Quick toggle to show personal checklist regardless of phase
+  const [showQuickChecklist, setShowQuickChecklist] = useState<boolean>(false);
 
   // Selected event filter for personalized event guidance
   const [selectedEventId, setSelectedEventId] = useState<string>(() => {
@@ -167,6 +173,60 @@ export const PhaseAwareContingentDashboard: React.FC<PhaseAwareContingentDashboa
 
   // Relevant deadlines matching active or displayed phase
   const relevantDeadlines = SUBMISSION_DEADLINES.slice(0, 4);
+
+  // If user is public, show authorization gate
+  if (currentUser.role === 'public') {
+    return (
+      <div className={`space-y-6 ${isCompactModal ? 'p-2' : 'max-w-4xl mx-auto px-4 sm:px-6 py-12'}`}>
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-lg text-center space-y-6">
+          <div className="w-16 h-16 mx-auto rounded-3xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shadow-inner">
+            <Lock className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2 max-w-lg mx-auto">
+            <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200 inline-block">
+              Pusat Maklumat Ahli Berfasa
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 font-display">
+              Portal Operasi Kontinjen KPMBP
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Dashboard ini mengandungi maklumat sulit persediaan operasi Kontinjen SOAR 2026, termasuk jadual latihan intensif, call-time raptai, senarai semak beg peribadi, dan arahan urus setia mengikut fasa aktif.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-md mx-auto text-left space-y-2 text-xs">
+            <div className="font-extrabold text-slate-800 flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>Akses dibenarkan untuk:</span>
+            </div>
+            <ul className="space-y-1 text-slate-600 pl-5 list-disc">
+              <li>35 orang Pelajar kontinjen yang terpilih</li>
+              <li>Pensyarah Pengiring & Advisor Acara</li>
+              <li>Pegawai PIC Acara & Krew Produksi</li>
+              <li>Penyelaras & Urus Setia Kontinjen KPMBP</li>
+            </ul>
+          </div>
+
+          <div className="pt-2">
+            <button
+              onClick={() => {
+                if (onOpenRoleSelector) {
+                  onOpenRoleSelector();
+                } else if (onOpenAdminWorkspace) {
+                  onOpenAdminWorkspace('access');
+                }
+              }}
+              className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-2xl text-xs sm:text-sm font-extrabold shadow-lg shadow-blue-600/25 transition-all cursor-pointer inline-flex items-center gap-2 hover:scale-[1.02]"
+            >
+              <UserCheck className="w-4 h-4" />
+              <span>Sahkan Pengenalan / Log Masuk Ahli Kontinjen</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`space-y-6 ${isCompactModal ? 'p-1' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'}`}>
@@ -579,6 +639,70 @@ export const PhaseAwareContingentDashboard: React.FC<PhaseAwareContingentDashboa
               </div>
             </div>
           </div>
+
+          {/* Option to Preview/Check Personal Packing Readiness */}
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center shrink-0">
+                <CheckSquare className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-slate-800 block">
+                  Semakan Awal Beg & Dokumen Peribadi
+                </span>
+                <span className="text-[11px] text-slate-500">
+                  {packingCompleted} daripada {packingChecklist.length} item peribadi siap ({packingPercent}%)
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowQuickChecklist((prev) => !prev)}
+              className="text-xs font-bold text-violet-700 hover:text-violet-900 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-xl border border-violet-200 transition-colors cursor-pointer self-start sm:self-auto"
+            >
+              {showQuickChecklist ? 'Tutup Semakan Awal' : 'Buka Semakan Awal Beg'}
+            </button>
+          </div>
+
+          {showQuickChecklist && (
+            <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h5 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                  <CheckSquare className="w-4 h-4 text-violet-600" />
+                  <span>Checklist Beg & Dokumen Peribadi (Persediaan Awal Fasa 04)</span>
+                </h5>
+                <span className="text-xs font-mono font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200">
+                  {packingPercent}% Lengkap
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {packingChecklist.map((item: any) => (
+                  <div
+                    key={item.id}
+                    onClick={() => handleTogglePackingItem(item.id)}
+                    className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                      item.checked
+                        ? 'bg-emerald-50/60 border-emerald-300 text-slate-900'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 ${
+                        item.checked ? 'bg-emerald-600 text-white' : 'border border-slate-400 bg-white'
+                      }`}>
+                        {item.checked && <CheckCircle2 className="w-3.5 h-3.5" />}
+                      </div>
+                      <span className={`text-xs truncate ${item.checked ? 'line-through text-slate-500' : 'font-medium'}`}>
+                        {item.text}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-700 shrink-0">
+                      {item.category}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -909,6 +1033,17 @@ export const PhaseAwareContingentDashboard: React.FC<PhaseAwareContingentDashboa
             </a>
           </div>
         </div>
+      </div>
+
+      {/* 7. CONTINGENT ETHICS & PLEDGE */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 rounded-3xl p-5 sm:p-6 text-white shadow-md border border-indigo-800/30 space-y-3">
+        <div className="flex items-center gap-2 text-amber-400">
+          <Sparkles className="w-4 h-4 text-amber-300" />
+          <h5 className="font-black text-xs uppercase tracking-wider">Ikrar & Disiplin Kontinjen KPM Bandar Penawar</h5>
+        </div>
+        <p className="text-xs sm:text-sm text-slate-200 leading-relaxed italic border-l-2 border-amber-400/60 pl-3">
+          "Kami warga Kontinjen KPM Bandar Penawar berikrar akan sentiasa menjaga disiplin, menjulang adab dan sahsiah terpuji, menepati masa dalam setiap fasa operasi, serta mempersembahkan mutu karya seni dakwah terbaik demi mengharumkan nama kolej di pentas SOAR IPMA 2026."
+        </p>
       </div>
 
     </div>

@@ -44,7 +44,13 @@ export const Header: React.FC<HeaderProps> = ({
   const userRole = currentUser?.role || (isAdminLoggedIn ? 'admin' : 'public');
 
   const tabs: { id: string; label: string; icon: any; highlight?: boolean }[] = [
-    { id: 'overview', label: 'Dashboard', icon: Compass },
+    { id: 'overview', label: 'Utama', icon: Compass },
+    { 
+      id: 'contingent_dashboard', 
+      label: userRole !== 'public' ? 'Dashboard Ahli' : 'Portal Ahli', 
+      icon: UserCheck, 
+      highlight: userRole !== 'public' 
+    },
     { id: 'events', label: 'Acara (5)', icon: Layers },
     { id: 'schedule', label: 'Tentatif', icon: Calendar },
     { id: 'calculator', label: 'Kalkulator', icon: Calculator },
@@ -118,6 +124,8 @@ export const Header: React.FC<HeaderProps> = ({
                     className={`group relative h-9 px-3.5 flex items-center justify-center transition-all duration-300 cursor-pointer ${
                       isActive
                         ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 rounded-xl font-bold'
+                        : tab.highlight
+                        ? 'bg-cyan-50 text-cyan-800 border border-cyan-300 hover:bg-cyan-100 rounded-xl font-bold shadow-xs'
                         : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-xl font-semibold'
                     }`}
                   >
@@ -197,6 +205,8 @@ export const Header: React.FC<HeaderProps> = ({
                   className={`h-8 px-3 rounded-lg text-xs font-bold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${
                     isActive
                       ? 'bg-blue-600 text-white shadow-sm'
+                      : tab.highlight
+                      ? 'bg-cyan-50 text-cyan-800 border border-cyan-300'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >

@@ -9,9 +9,10 @@ interface EventGridProps {
   onOpenCalculator: () => void;
   isAdminLoggedIn?: boolean;
   onOpenAdmin?: () => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
-export const EventGrid: React.FC<EventGridProps> = ({ searchQuery, onOpenCalculator, isAdminLoggedIn = false, onOpenAdmin }) => {
+export const EventGrid: React.FC<EventGridProps> = ({ searchQuery, onOpenCalculator, isAdminLoggedIn = false, onOpenAdmin, onNavigateTab }) => {
   const [selectedEvent, setSelectedEvent] = useState<EventDetail | null>(null);
 
   // Admin Deadlines State
@@ -359,6 +360,7 @@ export const EventGrid: React.FC<EventGridProps> = ({ searchQuery, onOpenCalcula
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}
         onOpenCalculator={onOpenCalculator}
+        onNavigateTab={onNavigateTab}
       />
 
       {/* Admin Deadline Editor Modal */}

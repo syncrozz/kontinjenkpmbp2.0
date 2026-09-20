@@ -159,3 +159,88 @@ export interface AccessRoleDefinition {
   description: string;
   privileges: string[];
 }
+
+// Structured Competition Reference Documents
+export type ReferenceCategory = 
+  | 'official_organizer_rules' 
+  | 'contingent_internal_guidelines' 
+  | 'admin_operational_instructions' 
+  | 'event_preparation_tasks';
+
+export type ProvenanceSourceType = 'official_organizer_rule' | 'internal_operational_requirement';
+
+export interface TraceableChecklistItem {
+  id: string;
+  taskText: string;
+  sourceType: ProvenanceSourceType;
+  sourceDocument: string;
+  sourceClause?: string;
+  deadline?: string;
+  responsibleRole: string;
+  mandatory?: boolean;
+}
+
+export interface SubmissionDeadlineInfo {
+  item: string;
+  date: string;
+  time?: string;
+  submissionChannel: string;
+  penaltyIfLate?: string;
+}
+
+export interface EventSpecificRequirements {
+  quotaRule: string;
+  durationLimits?: string;
+  technicalSpecifications?: string[];
+  stagingOrVenue?: string;
+  syariahAttireRule?: string;
+  aiPolicyRule?: string;
+  disqualificationPenalties?: string[];
+}
+
+export interface ReferenceClause {
+  id: string;
+  clauseNumber?: string;
+  heading: string;
+  text: string;
+  details?: string[];
+  mandatory?: boolean;
+  penaltyNote?: string;
+  deadline?: string;
+  venue?: string;
+  tags?: string[];
+  sourceType?: ProvenanceSourceType;
+  sourceDocument?: string;
+}
+
+export interface StructuredReferenceItem {
+  sectionId: string;
+  sectionTitle: string;
+  targetEvent?: string;
+  targetRole?: string;
+  officialDocumentRef: string;
+  documentVersion: string;
+  publicationDate: string;
+  documentStatus: 'Rasmi & Berkuat Kuasa' | 'Pindaan Terkini Disahkan' | 'Operasi Aktif';
+  submissionDeadlines?: SubmissionDeadlineInfo[];
+  eventRequirements?: EventSpecificRequirements;
+  clauses: ReferenceClause[];
+  checklistItems?: TraceableChecklistItem[];
+}
+
+export interface StructuredReferenceSection {
+  id: string;
+  category: ReferenceCategory;
+  categoryLabel: string;
+  categoryEnglish: string;
+  authoritySource: string;
+  documentRef: string;
+  documentVersion: string;
+  publicationDate: string;
+  documentStatus: 'Rasmi & Berkuat Kuasa' | 'Pindaan Terkini Disahkan' | 'Operasi Aktif';
+  description: string;
+  badgeColor: string;
+  accentColor: string;
+  iconName: string;
+  items: StructuredReferenceItem[];
+}

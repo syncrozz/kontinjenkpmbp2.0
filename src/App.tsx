@@ -11,6 +11,7 @@ import { TalentForm } from './components/TalentForm';
 import { SubmissionDeadlinesSection } from './components/SubmissionDeadlinesSection';
 import { AdminPanel } from './components/AdminPanel';
 import { PhaseBanner } from './components/PhaseBanner';
+import { PhaseAwareContingentDashboard } from './components/dashboard/PhaseAwareContingentDashboard';
 import { Footer } from './components/Footer';
 import { Search, Compass, Layers, Calendar, Calculator, CheckSquare, ShieldAlert, Sparkles, X, ShieldCheck, Award, UserCheck, ArrowRight } from 'lucide-react';
 import { OperationsPhaseState, DashboardModuleVisibility, ContingentUserProfile } from './types';
@@ -161,26 +162,37 @@ export default function App() {
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <button
+                onClick={() => {
+                  setActiveTab('contingent_dashboard');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/15 hover:bg-white/25 text-white font-black text-xs transition-all border border-white/20 cursor-pointer shadow-xs"
+                title="Buka Papan Pemuka Fasa Operasi Kontinjen"
+              >
+                <UserCheck className="w-3.5 h-3.5 text-cyan-300" />
+                <span>Dashboard Fasa Ahli</span>
+              </button>
               <button
                 onClick={() => setIsAdminOpen(true)}
-                className="inline-flex items-center gap-1 font-bold underline hover:text-white cursor-pointer"
+                className="inline-flex items-center gap-1 font-bold underline hover:text-white cursor-pointer text-xs"
               >
                 <span>
                   {currentUser.role === 'admin'
-                    ? 'Buka Pusat Operasi Admin'
+                    ? 'Pusat Operasi Admin'
                     : currentUser.role === 'advisor'
-                    ? 'Buka Workspace Advisor'
+                    ? 'Workspace Advisor'
                     : currentUser.role === 'pic'
-                    ? `Buka Workspace PIC (${currentUser.eventAssigned || 'Acara'})`
-                    : 'Buka Portal Ahli Kontinjen'}
+                    ? `Workspace PIC (${currentUser.eventAssigned || 'Acara'})`
+                    : 'Workspace Ahli'}
                 </span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
               <span className="text-white/40">|</span>
               <button
                 onClick={handleLogoutUser}
-                className="text-rose-300 hover:text-rose-100 font-bold cursor-pointer"
+                className="text-rose-300 hover:text-rose-100 font-bold cursor-pointer text-xs"
                 title="Log keluar daripada sesi ini"
               >
                 Log Keluar
@@ -249,6 +261,10 @@ export default function App() {
                   setAdminInitialTab('phases');
                   setIsAdminOpen(true);
                 }}
+                onNavigateTab={(tab) => {
+                  setActiveTab(tab);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
               />
             )}
 
@@ -301,10 +317,37 @@ export default function App() {
           </>
         )}
 
+        {activeTab === 'contingent_dashboard' && (
+          <PhaseAwareContingentDashboard
+            currentUser={currentUser}
+            phaseState={operationsPhase}
+            onNavigateTab={(tab) => {
+              setActiveTab(tab);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onOpenAdminWorkspace={(tab) => {
+              setAdminInitialTab((tab as any) || 'phases');
+              setIsAdminOpen(true);
+            }}
+            onOpenRoleSelector={() => {
+              setIsAdminOpen(true);
+            }}
+          />
+        )}
+
         {activeTab === 'talent' && <TalentForm />}
 
         {activeTab === 'events' && (
-          <EventGrid searchQuery={searchQuery} onOpenCalculator={handleOpenCalculator} isAdminLoggedIn={isAdminLoggedIn} onOpenAdmin={() => setIsAdminOpen(true)} />
+          <EventGrid
+            searchQuery={searchQuery}
+            onOpenCalculator={handleOpenCalculator}
+            isAdminLoggedIn={isAdminLoggedIn}
+            onOpenAdmin={() => setIsAdminOpen(true)}
+            onNavigateTab={(tab) => {
+              setActiveTab(tab);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
         )}
 
         {activeTab === 'schedule' && <ScheduleSection searchQuery={searchQuery} />}
@@ -332,6 +375,10 @@ export default function App() {
         phaseState={operationsPhase}
         onUpdatePhase={setOperationsPhase}
         initialTab={adminInitialTab}
+        onNavigateTab={(tab) => {
+          setActiveTab(tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
       />
 
       {/* Submission Deadlines Section - Controlled by deadlines module toggle or active overview */}

@@ -1,0 +1,16 @@
+{
+  "activePhaseId": "phase_03",
+  "announcement": "Peringatan Penyelaras Kontinjen KPMBP: Kontinjen KPMBP kini berada dalam Fasa 03 (Latihan & Persiapan Pasukan) menuju ke kejohanan SOAR 2026 pada 15–18 Oktober 2026. Sila pastikan semua pasukan melengkapkan jadual latihan intensif dan semakan rubrik penjurian!",
+  "visibleModules": {
+    "events": true,
+    "contingentOverview": true,
+    "schedule": true,
+    "calculator": true,
+    "checklist": true,
+    "talent": false,
+    "guidelines": true,
+    "deadlines": true
+  },
+  "updatedAt": "2026-09-20T00:39:02.142Z",
+  "updatedBy": "Penyelaras Kontinjen KPMBP"
+}

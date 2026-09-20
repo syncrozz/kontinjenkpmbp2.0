@@ -18,10 +18,11 @@ service cloud.firestore {
       allow delete: if resource != null;
     }
     
-    // Global Operations Phase & Module Visibility Config: Public read, structured admin write
+    // Global Operations Phase & Module Visibility Config: Public read, structured write with strict phase validation
     match /contingent_config/{docId} {
       allow read: if true;
-      allow write: if request.resource.data.activePhaseId is string;
+      allow write: if request.resource.data.activePhaseId is string
+                    && request.resource.data.activePhaseId in ['phase_01', 'phase_02', 'phase_03', 'phase_04', 'phase_05', 'phase_06'];
     }
   }
 }

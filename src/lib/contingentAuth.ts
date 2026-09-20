@@ -338,3 +338,48 @@ export async function fetchAuditLogsOnBackend(): Promise<{ success: boolean; log
     return { success: false, logs: [] };
   }
 }
+
+/**
+ * Public/Contingent: Fetch authoritative operations phase from backend
+ */
+export async function fetchPhaseConfigFromBackend(): Promise<{ success: boolean; phaseState?: any; error?: string }> {
+  try {
+    const res = await fetch('/api/config/phase');
+    const data = await res.json();
+    if (res.ok && data.phaseState) {
+      return { success: true, phaseState: data.phaseState };
+    }
+    return { success: false, error: data.error || 'Gagal memuat turun konfigurasi fasa' };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Admin: Update operations phase on backend with Server-Side Authorization & Audit Trail
+ */
+export async function updatePhaseConfigOnBackend(phaseState: any): Promise<{ success: boolean; phaseState?: any; error?: string }> {
+  const stored = getStoredSession();
+  if (!stored?.token) {
+    return { success: false, error: "Akses ditolak: Tiada sesi admin dikesan." };
+  }
+
+  try {
+    const res = await fetch('/api/admin/phase', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${stored.token}`
+      },
+      body: JSON.stringify(phaseState)
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      return { success: false, error: data.error || "Ralat mengemas kini fasa di pelayan." };
+    }
+    return { success: true, phaseState: data.phaseState };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Ralat rangkaian ke pelayan." };
+  }
+}
+

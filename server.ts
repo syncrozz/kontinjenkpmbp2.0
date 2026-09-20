@@ -177,7 +177,7 @@ interface AttemptRecord {
 interface SecurityAuditLog {
   id: string;
   timestamp: string;
-  action: 'ACTIVATION_SUCCESS' | 'ACTIVATION_FAILED' | 'ACCOUNT_LOCKED' | 'REVOKE_ACCESS' | 'UNLOCK_ACCOUNT' | 'LOGOUT' | 'REVOKE_ALL_SESSIONS';
+  action: 'ACTIVATION_SUCCESS' | 'ACTIVATION_FAILED' | 'ACCOUNT_LOCKED' | 'REVOKE_ACCESS' | 'UNLOCK_ACCOUNT' | 'LOGOUT' | 'REVOKE_ALL_SESSIONS' | 'PHASE_CHANGE' | 'CONFIG_UPDATE';
   actor: string;
   targetEmail: string;
   details?: string;
@@ -188,11 +188,76 @@ const verificationAttempts = new Map<string, AttemptRecord>();
 const revokedTokens = new Set<string>();
 const auditLogs: SecurityAuditLog[] = [];
 
-// PERSISTENCE LAYER FOR DEPLOYMENT CONTINUITY:
-// Ensure active sessions and audit logs survive server restarts or redeployments
+// PERSISTENCE LAYER FOR DEPLOYMENT CONTINUITY & SES v4.5 AUTHORITATIVE SOURCE:
+// Ensure active sessions, audit logs, and operations phase survive server restarts or redeployments
 const DATA_DIR = path.join(process.cwd(), '.data');
 const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 const AUDIT_FILE = path.join(DATA_DIR, 'audit_logs.json');
+const PHASE_FILE = path.join(DATA_DIR, 'phase_config.json');
+
+export interface ServerOperationsPhaseState {
+  activePhaseId: 'phase_01' | 'phase_02' | 'phase_03' | 'phase_04' | 'phase_05' | 'phase_06';
+  announcement?: string;
+  visibleModules?: {
+    events: boolean;
+    contingentOverview: boolean;
+    schedule: boolean;
+    calculator: boolean;
+    checklist: boolean;
+    talent: boolean;
+    guidelines: boolean;
+    deadlines: boolean;
+  };
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
+const DEFAULT_SERVER_OPERATIONS_PHASE: ServerOperationsPhaseState = {
+  activePhaseId: 'phase_03',
+  announcement: 'Peringatan Penyelaras: Kontinjen KPMBP kini berada dalam Fasa 03 (Latihan & Persiapan Pasukan) menuju ke kejohanan SOAR 2026 pada 15–18 Oktober 2026. Sila pastikan semua pasukan melengkapkan jadual latihan intensif dan semakan rubrik penjurian!',
+  visibleModules: {
+    events: true,
+    contingentOverview: true,
+    schedule: true,
+    calculator: true,
+    checklist: true,
+    talent: false,
+    guidelines: true,
+    deadlines: true
+  },
+  updatedAt: new Date().toISOString(),
+  updatedBy: 'Penyelaras Kontinjen KPMBP'
+};
+
+let currentOperationsPhase: ServerOperationsPhaseState = { ...DEFAULT_SERVER_OPERATIONS_PHASE };
+
+function initPhasePersistence() {
+  try {
+    if (fs.existsSync(PHASE_FILE)) {
+      const raw = fs.readFileSync(PHASE_FILE, 'utf-8');
+      const data = JSON.parse(raw);
+      if (data && typeof data.activePhaseId === 'string') {
+        currentOperationsPhase = {
+          ...DEFAULT_SERVER_OPERATIONS_PHASE,
+          ...data
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('Phase config load warning (using default):', err);
+  }
+}
+
+function persistPhaseToDisk() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(PHASE_FILE, JSON.stringify(currentOperationsPhase, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('Failed to persist phase config to disk:', err);
+  }
+}
 
 function initSessionPersistence() {
   try {
@@ -254,8 +319,9 @@ function persistAuditLogsToDisk() {
   }
 }
 
-// Load persisted sessions upon server startup
+// Load persisted sessions and operations phase configuration upon server startup
 initSessionPersistence();
+initPhasePersistence();
 
 function recordAuditLog(log: Omit<SecurityAuditLog, 'id' | 'timestamp'>) {
   auditLogs.unshift({
@@ -550,7 +616,14 @@ async function startServer() {
   // 3. Verify existing session token on app launch / revisit
   // Strictly verifies token validity without trusting client access flags
   app.post("/api/auth/verify-session", (req, res) => {
-    const { token } = req.body;
+    let token = req.body?.token;
+    if (!token && req.headers.authorization) {
+      const parts = req.headers.authorization.split(" ");
+      if (parts.length === 2 && parts[0].toLowerCase() === "bearer") {
+        token = parts[1];
+      }
+    }
+
     if (!token || typeof token !== 'string') {
       res.status(400).json({ valid: false, message: "Token sesi diperlukan." });
       return;
@@ -601,7 +674,13 @@ async function startServer() {
 
   // 4. Logout / terminate session
   app.post("/api/auth/logout", (req, res) => {
-    const { token } = req.body;
+    let token = req.body?.token;
+    if (!token && req.headers.authorization) {
+      const parts = req.headers.authorization.split(" ");
+      if (parts.length === 2 && parts[0].toLowerCase() === "bearer") {
+        token = parts[1];
+      }
+    }
     if (token) {
       const session = activeSessions.get(token);
       if (session) {
@@ -822,6 +901,114 @@ async function startServer() {
         badge: session.badge,
         eventAssigned: session.eventAssigned
       }
+    });
+  });
+
+  // --------------------------------------------------------------------------
+  // SES v4.5 AUTHORITATIVE OPERATIONS PHASE CONFIGURATION ENDPOINTS
+  // Principles: Authoritative Data Source, Server-Side Authorization,
+  // Sanitization, Normalization, Validation, Data Safety, Controlled Change Management
+  // --------------------------------------------------------------------------
+
+  // Public/Contingent: Get current authoritative operations phase state
+  app.get("/api/config/phase", (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.json({
+      success: true,
+      phaseState: currentOperationsPhase
+    });
+  });
+
+  // Protected Admin: Update operations phase configuration
+  // Strictly enforces Server-Side Authorization: only admin role permitted
+  // Sanitizes, normalizes, validates inputs and records tamper-evident audit trail
+  app.post("/api/admin/phase", (req, res) => {
+    // 1. Server-Side Authorization Check
+    const session = getAuthenticatedSession(req);
+    if (!session || session.role !== 'admin') {
+      res.status(403).json({ 
+        error: "Akses ditolak: Hanya Penyelaras Admin Kontinjen dibenarkan mengubah fasa operasi atau modul paparan." 
+      });
+      return;
+    }
+
+    const { activePhaseId, announcement, visibleModules, updatedBy } = req.body;
+
+    // 2. Sanitization helper (strips HTML, limits string lengths)
+    const sanitizeText = (val: unknown, maxLen: number): string => {
+      if (typeof val !== 'string') return '';
+      return val.replace(/<[^>]*>?/gm, '').trim().slice(0, maxLen);
+    };
+
+    // 3. Normalization & Validation of Phase ID
+    const VALID_PHASE_IDS = ['phase_01', 'phase_02', 'phase_03', 'phase_04', 'phase_05', 'phase_06'] as const;
+    if (!activePhaseId || !VALID_PHASE_IDS.includes(activePhaseId)) {
+      res.status(400).json({ 
+        error: `ID Fasa (${activePhaseId}) tidak sah. Sila gunakan fasa yang sah antara phase_01 hingga phase_06.` 
+      });
+      return;
+    }
+
+    // 4. Normalization of Announcement & Coordinator Name
+    const sanitizedAnnouncement = announcement !== undefined
+      ? sanitizeText(announcement, 1000)
+      : (currentOperationsPhase.announcement || '');
+      
+    const sanitizedUpdatedBy = sanitizeText(
+      updatedBy || session.name || 'Penyelaras Kontinjen KPMBP',
+      150
+    );
+
+    // 5. Normalization of Visible Modules (Strict boolean mapping, no unauthorized keys)
+    const prevModules = currentOperationsPhase.visibleModules || {
+      events: true,
+      contingentOverview: true,
+      schedule: true,
+      calculator: true,
+      checklist: true,
+      talent: false,
+      guidelines: true,
+      deadlines: true
+    };
+
+    const normalizedVisibleModules = {
+      events: typeof visibleModules?.events === 'boolean' ? visibleModules.events : prevModules.events,
+      contingentOverview: typeof visibleModules?.contingentOverview === 'boolean' ? visibleModules.contingentOverview : prevModules.contingentOverview,
+      schedule: typeof visibleModules?.schedule === 'boolean' ? visibleModules.schedule : prevModules.schedule,
+      calculator: typeof visibleModules?.calculator === 'boolean' ? visibleModules.calculator : prevModules.calculator,
+      checklist: typeof visibleModules?.checklist === 'boolean' ? visibleModules.checklist : prevModules.checklist,
+      talent: typeof visibleModules?.talent === 'boolean' ? visibleModules.talent : prevModules.talent,
+      guidelines: typeof visibleModules?.guidelines === 'boolean' ? visibleModules.guidelines : prevModules.guidelines,
+      deadlines: typeof visibleModules?.deadlines === 'boolean' ? visibleModules.deadlines : prevModules.deadlines,
+    };
+
+    const previousPhaseId = currentOperationsPhase.activePhaseId;
+    const updatedAtIso = new Date().toISOString();
+
+    // 6. State Mutation
+    currentOperationsPhase = {
+      activePhaseId,
+      announcement: sanitizedAnnouncement,
+      visibleModules: normalizedVisibleModules,
+      updatedAt: updatedAtIso,
+      updatedBy: sanitizedUpdatedBy
+    };
+
+    // 7. Data Safety Persistence
+    persistPhaseToDisk();
+
+    // 8. Controlled Change Management Audit Logging
+    recordAuditLog({
+      action: 'PHASE_CHANGE',
+      actor: session.email,
+      targetEmail: 'SYSTEM_CONFIG',
+      details: `Fasa operasi dikemas kini: ${previousPhaseId} -> ${activePhaseId} oleh ${session.name} (${session.email}).`
+    });
+
+    res.json({
+      success: true,
+      message: `Fasa operasi berjaya diselaraskan ke ${activePhaseId}.`,
+      phaseState: currentOperationsPhase
     });
   });
 

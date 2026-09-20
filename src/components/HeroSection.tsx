@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SOAR_METADATA } from '../data/soarData';
-import { Users, Award, MapPin, Clock, ArrowRight, Shield, CheckCircle2, ChevronRight, Music, Sparkles, UserPlus, Search, X } from 'lucide-react';
+import { Users, Award, MapPin, Clock, ArrowRight, Shield, CheckCircle2, ChevronRight, Music, Sparkles, Search, X } from 'lucide-react';
 
 interface HeroSectionProps {
   onSelectTab: (tab: string) => void;
@@ -53,18 +53,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectTab, onOpenEve
           
           {/* Main Info Hero */}
           <div className="lg:col-span-7 space-y-2.5">
-            {/* Prominent Talent Search CTA */}
-            <div className="pt-1 w-full">
-              <button
-                onClick={() => onSelectTab('talent')}
-                className="w-full flex items-center justify-center gap-2.5 px-6 py-3 rounded-full bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-700 text-white font-black text-sm sm:text-base shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40 hover:scale-[1.02] transition-all cursor-pointer"
-              >
-                <UserPlus className="w-5 h-5 text-white" />
-                <span>Isi Borang Pencarian Bakat SOAR '26</span>
-                <ArrowRight className="w-5 h-5 text-white" />
-              </button>
-            </div>
-
             {/* Quick Action CTAs */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full pt-1">
               <button

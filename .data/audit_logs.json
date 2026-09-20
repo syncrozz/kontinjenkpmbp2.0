@@ -1,0 +1,274 @@
+[
+  {
+    "id": "log-1789864747978-0e54c",
+    "timestamp": "2026-09-20T00:39:07.978Z",
+    "action": "REVOKE_ACCESS",
+    "actor": "kpmbppsn@gmail.com",
+    "targetEmail": "farhan.nordin@bpenawar.kpm.edu.my",
+    "details": "Akses ditarik balik oleh Admin. 3 sesi aktif dibatalkan."
+  },
+  {
+    "id": "log-1789864747974-zwlbg",
+    "timestamp": "2026-09-20T00:39:07.974Z",
+    "action": "ACTIVATION_SUCCESS",
+    "actor": "farhan.nordin@bpenawar.kpm.edu.my",
+    "targetEmail": "farhan.nordin@bpenawar.kpm.edu.my",
+    "details": "Pengesahan IC berjaya. Keahlian kontinjen diaktifkan."
+  },
+  {
+    "id": "log-1789864747965-nb8v9",
+    "timestamp": "2026-09-20T00:39:07.965Z",
+    "action": "ACCOUNT_LOCKED",
+    "actor": "aisha.razak.kpmbp@gmail.com",
+    "targetEmail": "aisha.razak.kpmbp@gmail.com",
+    "details": "Akaun dikunci selama 15 minit selepas 5 percubaan IC gagal berturut-turut."
+  },
+  {
+    "id": "log-1789864747963-fljr2",
+    "timestamp": "2026-09-20T00:39:07.963Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "aisha.razak.kpmbp@gmail.com",
+    "targetEmail": "aisha.razak.kpmbp@gmail.com",
+    "details": "Percubaan IC gagal (4/5). Baki: 1"
+  },
+  {
+    "id": "log-1789864747959-9ozlh",
+    "timestamp": "2026-09-20T00:39:07.959Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "aisha.razak.kpmbp@gmail.com",
+    "targetEmail": "aisha.razak.kpmbp@gmail.com",
+    "details": "Percubaan IC gagal (3/5). Baki: 2"
+  },
+  {
+    "id": "log-1789864747955-eyr1y",
+    "timestamp": "2026-09-20T00:39:07.955Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "aisha.razak.kpmbp@gmail.com",
+    "targetEmail": "aisha.razak.kpmbp@gmail.com",
+    "details": "Percubaan IC gagal (2/5). Baki: 3"
+  },
+  {
+    "id": "log-1789864747944-kzr7x",
+    "timestamp": "2026-09-20T00:39:07.944Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "aisha.razak.kpmbp@gmail.com",
+    "targetEmail": "aisha.razak.kpmbp@gmail.com",
+    "details": "Percubaan IC gagal (1/5). Baki: 4"
+  },
+  {
+    "id": "log-1789864742142-s9k2e",
+    "timestamp": "2026-09-20T00:39:02.142Z",
+    "action": "PHASE_CHANGE",
+    "actor": "kpmbppsn@gmail.com",
+    "targetEmail": "SYSTEM_CONFIG",
+    "details": "Fasa operasi dikemas kini: phase_03 -> phase_03 oleh Penyelaras Kontinjen KPMBP (kpmbppsn@gmail.com)."
+  },
+  {
+    "id": "log-1789864742137-94wc8",
+    "timestamp": "2026-09-20T00:39:02.137Z",
+    "action": "REVOKE_ACCESS",
+    "actor": "kpmbppsn@gmail.com",
+    "targetEmail": "farhan.nordin.kpmbp@gmail.com",
+    "details": "Akses ditarik balik oleh Admin. 2 sesi aktif dibatalkan."
+  },
+  {
+    "id": "log-1789864742119-ltcjc",
+    "timestamp": "2026-09-20T00:39:02.119Z",
+    "action": "LOGOUT",
+    "actor": "farhan.nordin.kpmbp@gmail.com",
+    "targetEmail": "farhan.nordin.kpmbp@gmail.com",
+    "details": "Pengguna mendaftar keluar."
+  },
+  {
+    "id": "log-1789864742098-i71tl",
+    "timestamp": "2026-09-20T00:39:02.098Z",
+    "action": "ACTIVATION_SUCCESS",
+    "actor": "farhan.nordin.kpmbp@gmail.com",
+    "targetEmail": "farhan.nordin.kpmbp@gmail.com",
+    "details": "Pengesahan IC berjaya. Keahlian kontinjen diaktifkan."
+  },
+  {
+    "id": "log-1789864742087-zpsx1",
+    "timestamp": "2026-09-20T00:39:02.087Z",
+    "action": "ACCOUNT_LOCKED",
+    "actor": "danish.haikal@bpenawar.kpm.edu.my",
+    "targetEmail": "danish.haikal@bpenawar.kpm.edu.my",
+    "details": "Akaun dikunci selama 15 minit selepas 5 percubaan IC gagal berturut-turut."
+  },
+  {
+    "id": "log-1789864742083-3drbf",
+    "timestamp": "2026-09-20T00:39:02.083Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "danish.haikal@bpenawar.kpm.edu.my",
+    "targetEmail": "danish.haikal@bpenawar.kpm.edu.my",
+    "details": "Percubaan IC gagal (4/5). Baki: 1"
+  },
+  {
+    "id": "log-1789864742079-d6a04",
+    "timestamp": "2026-09-20T00:39:02.079Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "danish.haikal@bpenawar.kpm.edu.my",
+    "targetEmail": "danish.haikal@bpenawar.kpm.edu.my",
+    "details": "Percubaan IC gagal (3/5). Baki: 2"
+  },
+  {
+    "id": "log-1789864742075-hhaga",
+    "timestamp": "2026-09-20T00:39:02.075Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "danish.haikal@bpenawar.kpm.edu.my",
+    "targetEmail": "danish.haikal@bpenawar.kpm.edu.my",
+    "details": "Percubaan IC gagal (2/5). Baki: 3"
+  },
+  {
+    "id": "log-1789864742072-he8oo",
+    "timestamp": "2026-09-20T00:39:02.072Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "danish.haikal@bpenawar.kpm.edu.my",
+    "targetEmail": "danish.haikal@bpenawar.kpm.edu.my",
+    "details": "Percubaan IC gagal (1/5). Baki: 4"
+  },
+  {
+    "id": "log-1789864703778-jgdz4",
+    "timestamp": "2026-09-20T00:38:23.778Z",
+    "action": "PHASE_CHANGE",
+    "actor": "kpmbppsn@gmail.com",
+    "targetEmail": "SYSTEM_CONFIG",
+    "details": "Fasa operasi dikemas kini: phase_03 -> phase_03 oleh Penyelaras Kontinjen KPMBP (kpmbppsn@gmail.com)."
+  },
+  {
+    "id": "log-1789864703772-2adi4",
+    "timestamp": "2026-09-20T00:38:23.772Z",
+    "action": "REVOKE_ACCESS",
+    "actor": "kpmbppsn@gmail.com",
+    "targetEmail": "siti.zulaikha@bpenawar.kpm.edu.my",
+    "details": "Akses ditarik balik oleh Admin. 3 sesi aktif dibatalkan."
+  },
+  {
+    "id": "log-1789864703737-6mil8",
+    "timestamp": "2026-09-20T00:38:23.737Z",
+    "action": "ACTIVATION_SUCCESS",
+    "actor": "siti.zulaikha@bpenawar.kpm.edu.my",
+    "targetEmail": "siti.zulaikha@bpenawar.kpm.edu.my",
+    "details": "Pengesahan IC berjaya. Keahlian kontinjen diaktifkan."
+  },
+  {
+    "id": "log-1789864703727-mbgvy",
+    "timestamp": "2026-09-20T00:38:23.727Z",
+    "action": "ACCOUNT_LOCKED",
+    "actor": "danish.haikal@bpenawar.kpm.edu.my",
+    "targetEmail": "danish.haikal@bpenawar.kpm.edu.my",
+    "details": "Akaun dikunci selama 15 minit selepas 5 percubaan IC gagal berturut-turut."
+  },
+  {
+    "id": "log-1789864703724-9csxv",
+    "timestamp": "2026-09-20T00:38:23.724Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "danish.haikal@bpenawar.kpm.edu.my",
+    "targetEmail": "danish.haikal@bpenawar.kpm.edu.my",
+    "details": "Percubaan IC gagal (4/5). Baki: 1"
+  },
+  {
+    "id": "log-1789864703720-nyysp",
+    "timestamp": "2026-09-20T00:38:23.720Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "danish.haikal@bpenawar.kpm.edu.my",
+    "targetEmail": "danish.haikal@bpenawar.kpm.edu.my",
+    "details": "Percubaan IC gagal (3/5). Baki: 2"
+  },
+  {
+    "id": "log-1789864703718-4qxt9",
+    "timestamp": "2026-09-20T00:38:23.718Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "danish.haikal@bpenawar.kpm.edu.my",
+    "targetEmail": "danish.haikal@bpenawar.kpm.edu.my",
+    "details": "Percubaan IC gagal (2/5). Baki: 3"
+  },
+  {
+    "id": "log-1789864703715-xl75e",
+    "timestamp": "2026-09-20T00:38:23.715Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "danish.haikal@bpenawar.kpm.edu.my",
+    "targetEmail": "danish.haikal@bpenawar.kpm.edu.my",
+    "details": "Percubaan IC gagal (1/5). Baki: 4"
+  },
+  {
+    "id": "log-1789864692931-sijo6",
+    "timestamp": "2026-09-20T00:38:12.931Z",
+    "action": "ACTIVATION_SUCCESS",
+    "actor": "farhan.nordin@bpenawar.kpm.edu.my",
+    "targetEmail": "farhan.nordin@bpenawar.kpm.edu.my",
+    "details": "Pengesahan IC berjaya. Keahlian kontinjen diaktifkan."
+  },
+  {
+    "id": "log-1789864692923-c1l0g",
+    "timestamp": "2026-09-20T00:38:12.923Z",
+    "action": "ACCOUNT_LOCKED",
+    "actor": "aisha.razak@bpenawar.kpm.edu.my",
+    "targetEmail": "aisha.razak@bpenawar.kpm.edu.my",
+    "details": "Akaun dikunci selama 15 minit selepas 5 percubaan IC gagal berturut-turut."
+  },
+  {
+    "id": "log-1789864692919-mu0r3",
+    "timestamp": "2026-09-20T00:38:12.919Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "aisha.razak@bpenawar.kpm.edu.my",
+    "targetEmail": "aisha.razak@bpenawar.kpm.edu.my",
+    "details": "Percubaan IC gagal (4/5). Baki: 1"
+  },
+  {
+    "id": "log-1789864692915-mrl0i",
+    "timestamp": "2026-09-20T00:38:12.915Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "aisha.razak@bpenawar.kpm.edu.my",
+    "targetEmail": "aisha.razak@bpenawar.kpm.edu.my",
+    "details": "Percubaan IC gagal (3/5). Baki: 2"
+  },
+  {
+    "id": "log-1789864692913-mth3m",
+    "timestamp": "2026-09-20T00:38:12.913Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "aisha.razak@bpenawar.kpm.edu.my",
+    "targetEmail": "aisha.razak@bpenawar.kpm.edu.my",
+    "details": "Percubaan IC gagal (2/5). Baki: 3"
+  },
+  {
+    "id": "log-1789864692909-int04",
+    "timestamp": "2026-09-20T00:38:12.909Z",
+    "action": "ACTIVATION_FAILED",
+    "actor": "aisha.razak@bpenawar.kpm.edu.my",
+    "targetEmail": "aisha.razak@bpenawar.kpm.edu.my",
+    "details": "Percubaan IC gagal (1/5). Baki: 4"
+  },
+  {
+    "id": "log-1789864676085-3x5f8",
+    "timestamp": "2026-09-20T00:37:56.085Z",
+    "action": "PHASE_CHANGE",
+    "actor": "kpmbppsn@gmail.com",
+    "targetEmail": "SYSTEM_CONFIG",
+    "details": "Fasa operasi dikemas kini: phase_03 -> phase_03 oleh Penyelaras Kontinjen KPMBP (kpmbppsn@gmail.com)."
+  },
+  {
+    "id": "log-1789864659987-1lh4u",
+    "timestamp": "2026-09-20T00:37:39.988Z",
+    "action": "PHASE_CHANGE",
+    "actor": "kpmbppsn@gmail.com",
+    "targetEmail": "SYSTEM_CONFIG",
+    "details": "Fasa operasi dikemas kini: phase_04 -> phase_03 oleh Penyelaras Kontinjen KPMBP (kpmbppsn@gmail.com)."
+  },
+  {
+    "id": "log-1789864659945-jv2ep",
+    "timestamp": "2026-09-20T00:37:39.945Z",
+    "action": "PHASE_CHANGE",
+    "actor": "kpmbppsn@gmail.com",
+    "targetEmail": "SYSTEM_CONFIG",
+    "details": "Fasa operasi dikemas kini: phase_03 -> phase_04 oleh Penyelaras Kontinjen KPMBP (kpmbppsn@gmail.com)."
+  },
+  {
+    "id": "log-1789861960626-o6nce",
+    "timestamp": "2026-09-19T23:52:40.626Z",
+    "action": "PHASE_CHANGE",
+    "actor": "kpmbppsn@gmail.com",
+    "targetEmail": "SYSTEM_CONFIG",
+    "details": "Fasa operasi dikemas kini: phase_03 -> phase_03 oleh Penyelaras Kontinjen KPMBP (kpmbppsn@gmail.com)."
+  }
+]

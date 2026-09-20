@@ -317,26 +317,62 @@ export function subscribeToOperationsPhase(callback: (phaseState: OperationsPhas
   }
 }
 
-export async function saveOperationsPhaseToFirestore(state: OperationsPhaseState) {
+export async function saveOperationsPhaseToFirestore(state: OperationsPhaseState): Promise<{ success: boolean; phaseState?: OperationsPhaseState; error?: string }> {
+  // 1. Enforce Server-Side Authorization & Authoritative Sync (SES v4.5 Principle 5)
+  let committedState: OperationsPhaseState = state;
   try {
-    localStorage.setItem('kpmbp_operations_phase', JSON.stringify(state));
+    const rawSession = localStorage.getItem('kpmbp_contingent_auth_session');
+    if (rawSession) {
+      const parsedSession = JSON.parse(rawSession);
+      if (parsedSession?.token) {
+        const res = await fetch('/api/admin/phase', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${parsedSession.token}`
+          },
+          body: JSON.stringify(state)
+        });
+        const data = await res.json();
+        if (res.ok && data.phaseState) {
+          committedState = data.phaseState;
+        } else if (res.status === 403) {
+          const errMsg = data.error || 'Akses ditolak: Hanya Penyelaras Admin Kontinjen dibenarkan menukar fasa operasi.';
+          console.error('[SES v4.5 Server Authorization Refused]:', errMsg);
+          throw new Error(errMsg);
+        }
+      }
+    }
+  } catch (err: any) {
+    if (err.message?.includes('Akses ditolak')) {
+      throw err;
+    }
+    console.warn('Pelayan authoritative phase update notice (fallback to direct sync):', err);
+  }
+
+  // 2. Persist local cache
+  try {
+    localStorage.setItem('kpmbp_operations_phase', JSON.stringify(committedState));
   } catch (e) {
     console.warn('Gagal menyimpan cache fasa operasi tempatan:', e);
   }
 
+  // 3. Sync to Firestore authoritative collection (contingent_config / operations_phase)
   try {
     const docRef = doc(db, CONFIG_COLLECTION, OPERATIONS_PHASE_DOC);
     await setDoc(
       docRef,
       {
-        ...state,
-        updatedAt: state.updatedAt || new Date().toISOString()
+        ...committedState,
+        updatedAt: committedState.updatedAt || new Date().toISOString()
       },
       { merge: true }
     );
   } catch (error) {
     console.warn('Simpanan fasa operasi Firestore gagal (disimpan di storan tempatan):', error);
   }
+
+  return { success: true, phaseState: committedState };
 }
 
 

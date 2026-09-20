@@ -89,6 +89,7 @@ interface AdminPanelProps {
   initialTab?: 'phases' | 'submissions' | 'checklist' | 'deadlines' | 'access';
   phaseState: OperationsPhaseState;
   onUpdatePhase: (newState: OperationsPhaseState) => void;
+  onNavigateTab?: (tabId: string) => void;
 }
 
 // Sample initial submissions if none exist so admin has data to inspect immediately
@@ -188,7 +189,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onUpdateChecklist,
   initialTab = 'phases',
   phaseState,
-  onUpdatePhase
+  onUpdatePhase,
+  onNavigateTab
 }) => {
   const [pinInput, setPinInput] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -336,9 +338,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       updatedAt: new Date().toISOString(),
       updatedBy: coordinatorInput.trim() || 'Penyelaras Kontinjen KPMBP'
     };
-    onUpdatePhase(updatedState);
-    await saveOperationsPhaseToFirestore(updatedState);
-    showToast(`Modul "${moduleKey}" kini ${newModules[moduleKey] ? 'DIPAPARKAN' : 'DISEMBUNYIKAN'} di dashboard utama!`);
+    try {
+      const res = await saveOperationsPhaseToFirestore(updatedState);
+      if (res?.phaseState) {
+        onUpdatePhase(res.phaseState);
+      } else {
+        onUpdatePhase(updatedState);
+      }
+      showToast(`Modul "${moduleKey}" kini ${newModules[moduleKey] ? 'DIPAPARKAN' : 'DISEMBUNYIKAN'} di dashboard utama!`);
+    } catch (err: any) {
+      showToast(`Ralat: ${err?.message || 'Gagal mengemas kini modul.'}`);
+    }
   };
 
   const handleApplyPresetForPhase = async (phaseId: SoarPhaseId) => {
@@ -349,9 +359,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       updatedAt: new Date().toISOString(),
       updatedBy: coordinatorInput.trim() || 'Penyelaras Kontinjen KPMBP'
     };
-    onUpdatePhase(updatedState);
-    await saveOperationsPhaseToFirestore(updatedState);
-    showToast(`Modul disyorkan bagi Fasa ${SOAR_PHASES.find(p => p.id === phaseId)?.phaseNumber} telah diterapkan!`);
+    try {
+      const res = await saveOperationsPhaseToFirestore(updatedState);
+      if (res?.phaseState) {
+        onUpdatePhase(res.phaseState);
+      } else {
+        onUpdatePhase(updatedState);
+      }
+      showToast(`Modul disyorkan bagi Fasa ${SOAR_PHASES.find(p => p.id === phaseId)?.phaseNumber} telah diterapkan!`);
+    } catch (err: any) {
+      showToast(`Ralat: ${err?.message || 'Gagal menerapkan pratetap fasa.'}`);
+    }
   };
 
   const handleShowAllModules = async () => {
@@ -371,9 +389,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       updatedAt: new Date().toISOString(),
       updatedBy: coordinatorInput.trim() || 'Penyelaras Kontinjen KPMBP'
     };
-    onUpdatePhase(updatedState);
-    await saveOperationsPhaseToFirestore(updatedState);
-    showToast('Semua modul kini dipaparkan di dashboard utama!');
+    try {
+      const res = await saveOperationsPhaseToFirestore(updatedState);
+      if (res?.phaseState) {
+        onUpdatePhase(res.phaseState);
+      } else {
+        onUpdatePhase(updatedState);
+      }
+      showToast('Semua modul kini dipaparkan di dashboard utama!');
+    } catch (err: any) {
+      showToast(`Ralat: ${err?.message || 'Gagal mengemas kini modul.'}`);
+    }
   };
 
   // Operations Phase Actions
@@ -390,9 +416,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       updatedAt: new Date().toISOString(),
       updatedBy: coordinatorInput.trim() || 'Penyelaras Kontinjen KPMBP'
     };
-    onUpdatePhase(updatedState);
-    await saveOperationsPhaseToFirestore(updatedState);
-    showToast(`Fasa operasi berjaya ditukar ke: Fasa ${targetPhase?.phaseNumber} - ${targetPhase?.title}!`);
+    try {
+      const res = await saveOperationsPhaseToFirestore(updatedState);
+      if (res?.phaseState) {
+        onUpdatePhase(res.phaseState);
+      } else {
+        onUpdatePhase(updatedState);
+      }
+      showToast(`Fasa operasi berjaya ditukar ke: Fasa ${targetPhase?.phaseNumber} - ${targetPhase?.title}!`);
+    } catch (err: any) {
+      showToast(`Ralat: ${err?.message || 'Gagal menukar fasa operasi.'}`);
+    }
   };
 
   const handleSaveAnnouncement = async (e: React.FormEvent) => {
@@ -403,9 +437,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       updatedAt: new Date().toISOString(),
       updatedBy: coordinatorInput.trim() || 'Penyelaras Kontinjen KPMBP'
     };
-    onUpdatePhase(updatedState);
-    await saveOperationsPhaseToFirestore(updatedState);
-    showToast('Pengumuman / Arahan rasmi fasa berjaya disimpan!');
+    try {
+      const res = await saveOperationsPhaseToFirestore(updatedState);
+      if (res?.phaseState) {
+        onUpdatePhase(res.phaseState);
+      } else {
+        onUpdatePhase(updatedState);
+      }
+      showToast('Pengumuman / Arahan rasmi fasa berjaya disimpan!');
+    } catch (err: any) {
+      showToast(`Ralat: ${err?.message || 'Gagal menyimpan pengumuman fasa.'}`);
+    }
   };
 
   const handleStartAddDeadline = () => {
@@ -808,6 +850,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         ) : activeRole === 'member' ? (
           <MemberWorkspace
             currentUser={currentUser || { role: 'member', name: 'Ahli Kontinjen KPMBP', title: 'Peserta / Krew', badge: 'Ahli Kontinjen' }}
+            phaseState={phaseState}
+            onNavigateTab={(tab) => {
+              onClose();
+              if (onNavigateTab) onNavigateTab(tab);
+            }}
+            onOpenAdminWorkspace={(tab) => {
+              setAdminTab((tab as any) || 'phases');
+            }}
           />
         ) : activeRole === 'pic' ? (
           <EventPicWorkspace
