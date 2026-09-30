@@ -515,27 +515,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   useEffect(() => {
     // Subscribe to talent submissions from Firestore
     const unsubSubmissions = subscribeToTalentSubmissions((firestoreSubs) => {
-      if (firestoreSubs && firestoreSubs.length > 0) {
+      if (firestoreSubs) {
         setSubmissions(firestoreSubs as any);
-        localStorage.setItem('kpmbp_talent_submissions', JSON.stringify(firestoreSubs));
+        try {
+          localStorage.setItem('kpmbp_talent_submissions', JSON.stringify(firestoreSubs));
+        } catch {}
       } else {
-        // Fallback to local storage or sample submissions
+        // Fallback to local storage only if offline
         try {
           const savedSubs = localStorage.getItem('kpmbp_talent_submissions');
-          if (savedSubs && JSON.parse(savedSubs).length > 0) {
+          if (savedSubs) {
             setSubmissions(JSON.parse(savedSubs));
-          } else {
-            setSubmissions(SAMPLE_SUBMISSIONS);
           }
-        } catch {
-          setSubmissions(SAMPLE_SUBMISSIONS);
-        }
+        } catch {}
       }
     });
 
     // Subscribe to checklist items from Firestore
     const unsubChecklist = subscribeToChecklist((firestoreItems) => {
-      if (firestoreItems && firestoreItems.length > 0) {
+      if (firestoreItems) {
         const formatted = firestoreItems.map(item => ({
           id: item.id || item.firestoreId,
           category: item.category || 'Dokumen',
@@ -544,7 +542,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           completed: Boolean(item.completed)
         }));
         setChecklistItems(formatted);
-        localStorage.setItem('kpmbp_soar_checklist', JSON.stringify(formatted));
+        try {
+          localStorage.setItem('kpmbp_soar_checklist', JSON.stringify(formatted));
+        } catch {}
       }
     });
 

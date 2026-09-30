@@ -8,6 +8,7 @@ import {
   getAllSubmissionDeadlines,
   getAllTraceableChecklistItems
 } from '../data/competitionReferenceData';
+import { PenaltyIconTooltip } from './PenaltyIconTooltip';
 import { 
   ShieldAlert, 
   ShieldCheck, 
@@ -87,12 +88,7 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
   };
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    'org-gen-01': true,
-    'org-teater-02': true,
-    'org-dakwah-03': true,
-    'kpmbp-etika-01': true,
-    'adm-fasa-01': true,
-    'task-teater-01': true
+    'org-gen-01': true
   });
   const [copiedClauseId, setCopiedClauseId] = useState<string | null>(null);
 
@@ -591,7 +587,7 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
           ) : (
             <div className="space-y-4">
               {filteredSections.map((section) => {
-                const isOpen = expandedSections[section.sectionId] !== false;
+                const isOpen = !!expandedSections[section.sectionId];
 
                 return (
                   <div
@@ -722,8 +718,8 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
                                   {dl.time && <div className="text-[11px] font-bold text-amber-800">Waktu Tutup: {dl.time}</div>}
                                   <div className="text-slate-600 text-[11px]">Saluran: <strong>{dl.submissionChannel}</strong></div>
                                   {dl.penaltyIfLate && (
-                                    <div className="text-rose-700 text-[11px] font-semibold bg-rose-50 p-1.5 rounded mt-1">
-                                      Penalti Lewat: {dl.penaltyIfLate}
+                                    <div className="pt-1 flex items-center gap-1.5">
+                                      <PenaltyIconTooltip penaltyText={dl.penaltyIfLate} label="Penalti Kelewatan" />
                                     </div>
                                   )}
                                 </div>
@@ -741,8 +737,8 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
                                 className="bg-white border border-slate-200/90 rounded-xl p-4 sm:p-5 space-y-3 shadow-2xs hover:border-blue-300 transition-all"
                               >
                                 {/* Clause Header & Meta */}
-                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2.5">
-                                  <div className="space-y-1">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="space-y-1 flex-1 min-w-0">
                                     <div className="flex flex-wrap items-center gap-2">
                                       {clause.clauseNumber && (
                                         <span className="text-xs font-black text-blue-800 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
@@ -771,23 +767,29 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
                                     </h4>
                                   </div>
 
-                                  <button
-                                    onClick={() => handleCopyClause(clause, section.sectionTitle, section.officialDocumentRef, section.documentVersion)}
-                                    className="self-start sm:self-auto text-xs font-bold text-slate-500 hover:text-blue-700 bg-slate-50 hover:bg-blue-50 px-2.5 py-1 rounded-lg border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
-                                    title="Salin petikan rujukan rasmi fasal ini"
-                                  >
-                                    {copiedClauseId === clause.id ? (
-                                      <>
-                                        <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                        <span className="text-emerald-700">Disalin</span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Copy className="w-3.5 h-3.5" />
-                                        <span>Salin Petikan</span>
-                                      </>
+                                  {/* Top Right Action Buttons: Penalty Icon + Salin Petikan */}
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    {clause.penaltyNote && (
+                                      <PenaltyIconTooltip penaltyText={clause.penaltyNote} align="right" />
                                     )}
-                                  </button>
+                                    <button
+                                      onClick={() => handleCopyClause(clause, section.sectionTitle, section.officialDocumentRef, section.documentVersion)}
+                                      className="text-xs font-bold text-slate-500 hover:text-blue-700 bg-slate-50 hover:bg-blue-50 px-2.5 py-1 rounded-lg border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
+                                      title="Salin petikan rujukan rasmi fasal ini"
+                                    >
+                                      {copiedClauseId === clause.id ? (
+                                        <>
+                                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                          <span className="text-emerald-700">Disalin</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Copy className="w-3.5 h-3.5" />
+                                          <span className="hidden sm:inline">Salin Petikan</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
                                 </div>
 
                                 {/* Main Text */}
@@ -804,17 +806,6 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
                                         <span>{d}</span>
                                       </div>
                                     ))}
-                                  </div>
-                                )}
-
-                                {/* Penalty Note */}
-                                {clause.penaltyNote && (
-                                  <div className="bg-rose-50 border border-rose-200 rounded-lg p-2.5 flex items-start gap-2 text-xs text-rose-900">
-                                    <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                                    <div>
-                                      <strong className="font-black uppercase">Penalti / Hukuman: </strong>
-                                      <span>{clause.penaltyNote}</span>
-                                    </div>
                                   </div>
                                 )}
                               </div>
@@ -1047,12 +1038,9 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
                 </div>
 
                 {dlObj.deadline.penaltyIfLate && (
-                  <div className="mt-3 pt-2.5 border-t border-slate-100 bg-rose-50/70 p-2.5 rounded-xl text-[11px] text-rose-900 flex items-start gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
-                    <div>
-                      <strong>Penalti Kelewatan: </strong>
-                      <span>{dlObj.deadline.penaltyIfLate}</span>
-                    </div>
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600">
+                    <span className="font-semibold text-rose-800">Penalti Kelewatan:</span>
+                    <PenaltyIconTooltip penaltyText={dlObj.deadline.penaltyIfLate} label="Penalti Kelewatan" />
                   </div>
                 )}
               </div>

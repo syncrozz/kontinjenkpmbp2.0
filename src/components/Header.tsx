@@ -15,7 +15,9 @@ import {
   ShieldCheck, 
   Sparkles,
   Award,
-  UserCheck
+  UserCheck,
+  BookOpen,
+  PhoneCall
 } from 'lucide-react';
 import { OperationsPhaseState, ContingentUserProfile } from '../types';
 
@@ -43,21 +45,34 @@ export const Header: React.FC<HeaderProps> = ({
   const currentPhase = SOAR_PHASES.find(p => p.id === phaseState?.activePhaseId) || SOAR_PHASES[0];
   const userRole = currentUser?.role || (isAdminLoggedIn ? 'admin' : 'public');
 
-  const tabs: { id: string; label: string; icon: any; highlight?: boolean }[] = [
-    { id: 'overview', label: 'Utama', icon: Compass },
-    { 
-      id: 'contingent_dashboard', 
-      label: userRole !== 'public' ? 'Dashboard Ahli' : 'Portal Ahli', 
-      icon: UserCheck, 
-      highlight: userRole !== 'public' 
-    },
-    { id: 'events', label: 'Acara (5)', icon: Layers },
-    { id: 'schedule', label: 'Tentatif', icon: Calendar },
-    { id: 'calculator', label: 'Kalkulator', icon: Calculator },
-    { id: 'checklist', label: 'Checklist', icon: CheckSquare },
-    { id: 'talent', label: 'Borang Bakat', icon: UserPlus },
-    { id: 'guidelines', label: 'Syarat & Dokumen', icon: ShieldAlert },
-  ];
+  // TARGET PUBLIC NAVIGATION (Phase 1 Information Architecture):
+  // 1. Utama
+  // 2. Acara
+  // 3. Jadual
+  // 4. Dokumen
+  // 5. Hubungi
+  // Authenticated users get dedicated access to Dashboard Ahli
+  const tabs: { id: string; label: string; icon: any; highlight?: boolean }[] = userRole !== 'public'
+    ? [
+        { id: 'overview', label: 'Utama', icon: Compass },
+        { 
+          id: 'contingent_dashboard', 
+          label: 'Dashboard Ahli', 
+          icon: UserCheck, 
+          highlight: true 
+        },
+        { id: 'events', label: 'Acara', icon: Layers },
+        { id: 'schedule', label: 'Jadual', icon: Calendar },
+        { id: 'guidelines', label: 'Dokumen', icon: BookOpen },
+        { id: 'contact', label: 'Hubungi', icon: PhoneCall },
+      ]
+    : [
+        { id: 'overview', label: 'Utama', icon: Compass },
+        { id: 'events', label: 'Acara', icon: Layers },
+        { id: 'schedule', label: 'Jadual', icon: Calendar },
+        { id: 'guidelines', label: 'Dokumen', icon: BookOpen },
+        { id: 'contact', label: 'Hubungi', icon: PhoneCall },
+      ];
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 text-slate-900 shadow-sm w-full overflow-hidden">
@@ -91,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <button
                     onClick={() => {
                       setActiveTab('overview');
-                      const elem = document.getElementById('phase-operations-hub');
+                      const elem = document.getElementById('current-phase-summary');
                       if (elem) elem.scrollIntoView({ behavior: 'smooth' });
                     }}
                     className="hidden xl:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-800 border border-slate-200 transition-colors cursor-pointer"

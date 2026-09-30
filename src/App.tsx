@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
-import { ContingentOverview } from './components/ContingentOverview';
+import { CurrentPhaseSummary } from './components/CurrentPhaseSummary';
+import { EventPreview } from './components/EventPreview';
+import { ImportantDatesPreview } from './components/ImportantDatesPreview';
+import { ReferenceLinks } from './components/ReferenceLinks';
 import { EventGrid } from './components/EventGrid';
 import { ScheduleSection } from './components/ScheduleSection';
+import { GuidelinesSection } from './components/GuidelinesSection';
+import { ContactSection } from './components/ContactSection';
 import { RubricCalculator } from './components/RubricCalculator';
 import { LogisticsChecklist } from './components/LogisticsChecklist';
-import { GuidelinesSection } from './components/GuidelinesSection';
 import { TalentForm } from './components/TalentForm';
-import { SubmissionDeadlinesSection } from './components/SubmissionDeadlinesSection';
+import { ContingentOverview } from './components/ContingentOverview';
 import { AdminPanel } from './components/AdminPanel';
-import { PhaseBanner } from './components/PhaseBanner';
 import { PhaseAwareContingentDashboard } from './components/dashboard/PhaseAwareContingentDashboard';
 import { Footer } from './components/Footer';
 import { Search, Compass, Layers, Calendar, Calculator, CheckSquare, ShieldAlert, Sparkles, X, ShieldCheck, Award, UserCheck, ArrowRight } from 'lucide-react';
@@ -104,6 +107,30 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // Offline detection state (Section 17: Non-intrusive offline indicator)
+  const [isOnline, setIsOnline] = useState<boolean>(() => 
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Contextual festival emergency trigger (Section 18: Active only Oct 15–18, 2026)
+  const isFestivalDates = useMemo(() => {
+    const now = new Date();
+    return now.getFullYear() === 2026 && now.getMonth() === 9 && now.getDate() >= 15 && now.getDate() <= 18;
+  }, []);
+
   const handleOpenCalculator = () => {
     setActiveTab('calculator');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -111,10 +138,34 @@ export default function App() {
 
   const handleOpenEvent = () => {
     setActiveTab('events');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-600 selection:text-white flex flex-col">
+      {/* Offline Status Alert (Section 17: Non-intrusive offline indicator) */}
+      {!isOnline && (
+        <div className="bg-slate-800 text-slate-200 text-xs py-1 px-4 flex items-center justify-center gap-2 border-b border-slate-700">
+          <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+          <span>Luar talian — beberapa maklumat mungkin belum dikemas kini (Mod Bacaan Cache).</span>
+        </div>
+      )}
+
+      {/* Contextual Festival Emergency Banner (Section 18: Active only Oct 15–18, 2026) */}
+      {isFestivalDates && (
+        <div className="bg-rose-950 text-rose-200 text-xs py-1 px-4 flex items-center justify-center gap-2 border-b border-rose-800 font-bold">
+          <span>🚨 Festival Sedang Berlangsung — Talian Bantuan Kecemasan Pegawai Bertugas:</span>
+          <a
+            href="https://wasap.my/60145313756?text=KECEMASAN%20SOAR%20KPMBP"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-white"
+          >
+            Hubungi Hotline WhatsApp &rarr;
+          </a>
+        </div>
+      )}
+
       {/* Sticky Header Navigation */}
       <Header
         activeTab={activeTab}
@@ -172,7 +223,7 @@ export default function App() {
                 title="Buka Papan Pemuka Fasa Operasi Kontinjen"
               >
                 <UserCheck className="w-3.5 h-3.5 text-cyan-300" />
-                <span>Dashboard Fasa Ahli</span>
+                <span>Dashboard Ahli</span>
               </button>
               <button
                 onClick={() => setIsAdminOpen(true)}
@@ -202,45 +253,12 @@ export default function App() {
         </div>
       )}
 
-      {/* Global Search Results Alert Bar */}
-      {searchQuery.trim() !== '' && (
-        <div className="bg-blue-50 border-b border-blue-200 px-4 py-2.5 text-xs text-blue-900 flex items-center justify-between">
-          <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Search className="w-4 h-4 text-blue-600" />
-              <span>
-                Menapis hasil carian untuk: <strong>"{searchQuery}"</strong>
-              </span>
-            </div>
-            <button
-              onClick={() => setSearchQuery('')}
-              className="text-blue-700 hover:text-blue-900 font-bold flex items-center gap-1 bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200"
-            >
-              <span>Kosongkan Carian</span>
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Global Contingent Operations Phase Hub */}
-      <PhaseBanner
-        phaseState={operationsPhase}
-        onSelectTab={(tab) => {
-          setActiveTab(tab);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        isAdminLoggedIn={isAdminLoggedIn}
-        onOpenAdmin={(tab) => {
-          setAdminInitialTab((tab as any) || 'phases');
-          setIsAdminOpen(true);
-        }}
-      />
-
       {/* Main Content Area */}
       <main className="flex-1">
+        {/* 1. PUBLIC HOMEPAGE (ENTRY POINT: RUJUK) */}
         {activeTab === 'overview' && (
           <>
+            {/* Step 1: Hero / Identity & Live Countdown */}
             <HeroSection
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
@@ -251,72 +269,88 @@ export default function App() {
               onOpenEvent={handleOpenEvent}
             />
 
-            {/* Configurable Primary Dashboard Modules (SES v4.5) */}
-            {visibleModules.events && (
-              <EventGrid
-                searchQuery={searchQuery}
-                onOpenCalculator={handleOpenCalculator}
-                isAdminLoggedIn={isAdminLoggedIn}
-                onOpenAdmin={() => {
-                  setAdminInitialTab('phases');
-                  setIsAdminOpen(true);
-                }}
-                onNavigateTab={(tab) => {
-                  setActiveTab(tab);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-              />
-            )}
+            {/* Step 2: Current Phase Summary (Concise active phase focus) */}
+            <CurrentPhaseSummary
+              phaseState={operationsPhase}
+              onSelectTab={(tab) => {
+                setActiveTab(tab);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              isAdminLoggedIn={isAdminLoggedIn}
+              onOpenAdmin={(tab) => {
+                setAdminInitialTab((tab as any) || 'phases');
+                setIsAdminOpen(true);
+              }}
+            />
 
-            {visibleModules.contingentOverview && <ContingentOverview />}
+            {/* Step 3: Event Preview (Compact summary of the 5 events with CTA) */}
+            <EventPreview
+              onNavigateTab={(tab) => {
+                setActiveTab(tab);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
 
-            {visibleModules.schedule && <ScheduleSection searchQuery={searchQuery} />}
+            {/* Step 4: Important Dates Preview (Key dates, deadlines, and schedule CTA) */}
+            <ImportantDatesPreview
+              onNavigateTab={(tab) => {
+                setActiveTab(tab);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
 
-            {visibleModules.calculator && <RubricCalculator />}
-
-            {visibleModules.checklist && (
-              <LogisticsChecklist
-                onOpenAdmin={() => {
-                  setAdminInitialTab('checklist');
-                  setIsAdminOpen(true);
-                }}
-                isAdminLoggedIn={isAdminLoggedIn}
-              />
-            )}
-
-            {visibleModules.talent && <TalentForm />}
-
-            {visibleModules.guidelines && <GuidelinesSection />}
-
-            {/* Informative Status Banner for Active Modules */}
-            {Object.values(visibleModules).some((v) => v === false) && (
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div className="bg-slate-100/90 border border-slate-200/80 rounded-2xl p-4 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg shrink-0">
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                    <span>
-                      Modul paparan dashboard telah dilaraskan mengikut keutamaan <strong>Fasa Operasi Semasa</strong>. Semua borang pendaftaran, senarai semak, dan dokumen rasmi tetap boleh diakses penuh pada bila-bila masa melalui menu navigasi di atas.
-                    </span>
-                  </div>
-                  {isAdminLoggedIn && (
-                    <button
-                      onClick={() => {
-                        setAdminInitialTab('phases');
-                        setIsAdminOpen(true);
-                      }}
-                      className="text-blue-700 hover:text-blue-900 font-bold underline shrink-0 cursor-pointer text-left sm:text-right"
-                    >
-                      Ubah Paparan Modul (Admin)
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Step 5: Reference Links (Direct links to Dokumen, Jadual, Hubungi) */}
+            <ReferenceLinks
+              onNavigateTab={(tab) => {
+                setActiveTab(tab);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onOpenContingentAccess={() => setIsAdminOpen(true)}
+            />
           </>
         )}
 
+        {/* 2. PUBLIC ACARA TAB (Authoritative Home for Events & Event Rubrics) */}
+        {activeTab === 'events' && (
+          <EventGrid
+            searchQuery={searchQuery}
+            onOpenCalculator={handleOpenCalculator}
+            isAdminLoggedIn={isAdminLoggedIn}
+            onOpenAdmin={() => setIsAdminOpen(true)}
+            onNavigateTab={(tab) => {
+              setActiveTab(tab);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        )}
+
+        {/* 3. PUBLIC JADUAL TAB (Authoritative Home for Tentatif 4 Hari & Tarikh Penyerahan) */}
+        {activeTab === 'schedule' && (
+          <ScheduleSection
+            searchQuery={searchQuery}
+            isAdminLoggedIn={isAdminLoggedIn}
+            onOpenAdmin={() => {
+              setAdminInitialTab('deadlines');
+              setIsAdminOpen(true);
+            }}
+            onOpenCalculator={handleOpenCalculator}
+          />
+        )}
+
+        {/* 4. PUBLIC DOKUMEN TAB (Authoritative Home for Official Rules & Clauses) */}
+        {activeTab === 'guidelines' && <GuidelinesSection />}
+
+        {/* 5. PUBLIC HUBUNGI TAB (Authoritative Home for Contacts & Secretariat) */}
+        {activeTab === 'contact' && (
+          <ContactSection
+            onNavigateTab={(tab) => {
+              setActiveTab(tab);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        )}
+
+        {/* 6. MEMBER WORKSPACE (Dedicated Operational Hub for Authenticated Contingent) */}
         {activeTab === 'contingent_dashboard' && (
           <PhaseAwareContingentDashboard
             currentUser={currentUser}
@@ -335,30 +369,20 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'talent' && <TalentForm />}
-
-        {activeTab === 'events' && (
-          <EventGrid
-            searchQuery={searchQuery}
-            onOpenCalculator={handleOpenCalculator}
-            isAdminLoggedIn={isAdminLoggedIn}
-            onOpenAdmin={() => setIsAdminOpen(true)}
-            onNavigateTab={(tab) => {
-              setActiveTab(tab);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
-        )}
-
-        {activeTab === 'schedule' && <ScheduleSection searchQuery={searchQuery} />}
-
+        {/* 7. OPERATIONAL TOOLS (Maintained for Workspaces and Contextual Links) */}
         {activeTab === 'calculator' && <RubricCalculator />}
 
         {activeTab === 'checklist' && (
-          <LogisticsChecklist onOpenAdmin={() => setIsAdminOpen(true)} isAdminLoggedIn={isAdminLoggedIn} />
+          <LogisticsChecklist
+            onOpenAdmin={() => {
+              setAdminInitialTab('checklist');
+              setIsAdminOpen(true);
+            }}
+            isAdminLoggedIn={isAdminLoggedIn}
+          />
         )}
 
-        {activeTab === 'guidelines' && <GuidelinesSection />}
+        {activeTab === 'talent' && <TalentForm />}
       </main>
 
       {/* Admin Panel & Contingent Access Workspaces Modal */}
@@ -381,19 +405,7 @@ export default function App() {
         }}
       />
 
-      {/* Submission Deadlines Section - Controlled by deadlines module toggle or active overview */}
-      {visibleModules.deadlines && (
-        <SubmissionDeadlinesSection
-          isAdminLoggedIn={isAdminLoggedIn}
-          onOpenAdmin={() => {
-            setAdminInitialTab('deadlines');
-            setIsAdminOpen(true);
-          }}
-          onOpenCalculator={handleOpenCalculator}
-        />
-      )}
-
-      {/* Footer */}
+      {/* Footer (Simplified essential references & attribution) */}
       <Footer onSelectTab={(tab) => {
         setActiveTab(tab);
         window.scrollTo({ top: 0, behavior: 'smooth' });

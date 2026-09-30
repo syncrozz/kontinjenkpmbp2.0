@@ -54,7 +54,7 @@ export const LogisticsChecklist: React.FC<LogisticsChecklistProps> = ({
   // Subscribe to real-time updates from Firestore
   useEffect(() => {
     const unsubscribe = subscribeToChecklist((firestoreItems) => {
-      if (firestoreItems && firestoreItems.length > 0) {
+      if (firestoreItems) {
         // Map firestore items ensuring id field exists
         const formatted = firestoreItems.map(item => ({
           id: item.id || item.firestoreId,
@@ -64,7 +64,9 @@ export const LogisticsChecklist: React.FC<LogisticsChecklistProps> = ({
           completed: Boolean(item.completed)
         }));
         setItems(formatted);
-        localStorage.setItem('kpmbp_soar_checklist', JSON.stringify(formatted));
+        try {
+          localStorage.setItem('kpmbp_soar_checklist', JSON.stringify(formatted));
+        } catch {}
       }
     });
 

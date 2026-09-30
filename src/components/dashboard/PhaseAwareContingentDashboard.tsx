@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Compass, 
   CheckCircle2, 
@@ -17,29 +17,32 @@ import {
   Calculator, 
   CheckSquare, 
   ChevronRight, 
+  ChevronDown, 
+  ChevronUp, 
   Info, 
   FileText,
-  Video,
-  Bus,
-  HeartHandshake,
-  Circle,
+  Lock,
   Megaphone,
-  Filter,
-  Lock
+  Check,
+  ListTodo,
+  ExternalLink,
+  LogOut,
+  User
 } from 'lucide-react';
 import { 
   ContingentUserProfile, 
   OperationsPhaseState, 
-  SoarPhaseId, 
-  SoarPhaseConfig, 
-  EventDetail 
+  EventDetail,
+  TraceableChecklistItem
 } from '../../types';
 import { 
   SOAR_PHASES, 
   EVENTS_DATA, 
-  SOAR_METADATA, 
-  SUBMISSION_DEADLINES 
+  SOAR_METADATA 
 } from '../../data/soarData';
+import { 
+  getAllTraceableChecklistItems 
+} from '../../data/competitionReferenceData';
 
 interface PhaseAwareContingentDashboardProps {
   currentUser: ContingentUserProfile;
@@ -50,31 +53,85 @@ interface PhaseAwareContingentDashboardProps {
   isCompactModal?: boolean;
 }
 
-// Personal packing checklist for Phase 04 / member readiness
-const PERSONAL_PACKING_ITEMS = [
-  { id: 'p1', text: 'Kad Pengenalan (MyKad) & Kad Pelajar KPM (Wajib fizikal)', category: 'Dokumen', checked: true },
-  { id: 'p2', text: 'Baju Korporat KPM / Baju Rasmi Kontinjen (Perasmian & Pembukaan)', category: 'Pakaian', checked: false },
-  { id: 'p3', text: 'Kasut Hitam Bertutup & Stoking Gelap (Etika pentas & kolej)', category: 'Pakaian', checked: false },
-  { id: 'p4', text: 'Borang Kebenaran Waris / Ibu Bapa bertandatangan lengkap', category: 'Dokumen', checked: true },
-  { id: 'p5', text: 'Instrumen peribadi / Prop pentas / Kostum persembahan acara', category: 'Peralatan', checked: false },
-  { id: 'p6', text: 'Ubat-ubatan peribadi & kelengkapan kesihatan khusus', category: 'Kesihatan', checked: false },
-  { id: 'p7', text: 'Kelengkapan ibadah (telekung / sejadah / kain pelekat / songkok)', category: 'Ibadah', checked: true },
-  { id: 'p8', text: 'Pengecas telefon / Powerbank & alatan komunikasi kecemasan', category: 'Teknikal', checked: false }
+// Personal packing checklist for member readiness
+const PERSONAL_PACKING_ITEMS: TraceableChecklistItem[] = [
+  { 
+    id: 'pack-mykad', 
+    taskText: 'Kad Pengenalan (MyKad) & Kad Pelajar KPM fizikal (Wajib pengesahan penganjur)', 
+    sourceType: 'official_organizer_rule', 
+    sourceDocument: 'Syarat Am Penganjur SOAR 2026', 
+    responsibleRole: 'Pelajar',
+    deadline: '15 Okt 2026',
+    mandatory: true 
+  },
+  { 
+    id: 'pack-baju-korporat', 
+    taskText: 'Baju Korporat KPM / Baju Rasmi Kontinjen KPMBP (Majlis Perasmian & Penutupan)', 
+    sourceType: 'internal_operational_requirement', 
+    sourceDocument: 'SOP Kontinjen KPMBP', 
+    responsibleRole: 'Semua',
+    deadline: '15 Okt 2026',
+    mandatory: true 
+  },
+  { 
+    id: 'pack-borang-waris', 
+    taskText: 'Borang Kebenaran Waris / Ibu Bapa yang lengkap bertandatangan', 
+    sourceType: 'internal_operational_requirement', 
+    sourceDocument: 'Pekeliling Kebajikan KPMBP', 
+    responsibleRole: 'Pelajar',
+    deadline: '10 Okt 2026',
+    mandatory: true 
+  },
+  { 
+    id: 'pack-kostum-prop', 
+    taskText: 'Kostum persembahan, instrumen peribadi & prop pentas yang disahkan patuh syariah', 
+    sourceType: 'official_organizer_rule', 
+    sourceDocument: 'Garis Panduan Busana & Alatan', 
+    responsibleRole: 'Pelajar',
+    deadline: '12 Okt 2026',
+    mandatory: true 
+  },
+  { 
+    id: 'pack-kesihatan', 
+    taskText: 'Ubat-ubatan peribadi & kelengkapan kesihatan khusus (maklumkan kepada pegawai pengiring)', 
+    sourceType: 'internal_operational_requirement', 
+    sourceDocument: 'SOP Kesihatan & Kebajikan KPMBP', 
+    responsibleRole: 'Pelajar',
+    deadline: '14 Okt 2026' 
+  },
+  { 
+    id: 'pack-ibadah', 
+    taskText: 'Kelengkapan ibadah lengkap (sejadah peribadi, telekung / kain pelekat, songkok)', 
+    sourceType: 'internal_operational_requirement', 
+    sourceDocument: 'Kod Etika & Sahsiah KPMBP', 
+    responsibleRole: 'Semua',
+    deadline: '14 Okt 2026' 
+  },
+  { 
+    id: 'pack-gadget', 
+    taskText: 'Pengecas telefon / Powerbank & kabel komunikasi rasmi untuk talian kecemasan', 
+    sourceType: 'internal_operational_requirement', 
+    sourceDocument: 'SOP Perhubungan Luar', 
+    responsibleRole: 'Semua',
+    deadline: '15 Okt 2026' 
+  }
 ];
 
 // Phase 03 Rehearsal Schedule by Event
 const REHEARSAL_SCHEDULE = [
   {
-    event: 'Teater Islamik (Masar Al-Masajid)',
+    eventKeyword: 'teater',
+    eventTitle: 'Teater Islamik (Masar Al-Masajid)',
     dayTime: 'Setiap Isnin & Rabu (8:30 PM - 11:00 PM)',
     venue: 'Dewan Serbaguna KPMBP',
-    focus: 'Latihan skrip watak, blocking pentas, dan sebutan naratif.',
+    focus: 'Latihan skrip watak, blocking pentas & sebutan naratif.',
     leadAdvisor: 'Muzlinda',
     phone: '019-2046144',
     whatsapp: 'https://wasap.my/60192046144'
   },
   {
-    event: 'Battle of the Band (Rock Malaya)',
+    eventKeyword: 'battle',
+    eventTitle: 'Battle of the Band (Rock Malaya)',
     dayTime: 'Setiap Selasa & Khamis (8:00 PM - 10:30 PM)',
     venue: 'Studio Muzik KPMBP',
     focus: 'Keserasian tempo, dinamik instrumen & kawalan vokal lagu wajib.',
@@ -83,7 +140,8 @@ const REHEARSAL_SCHEDULE = [
     whatsapp: 'https://wasap.my/60137554902'
   },
   {
-    event: 'Symphonic Duo',
+    eventKeyword: 'symphonic',
+    eventTitle: 'Symphonic Duo',
     dayTime: 'Setiap Rabu (5:00 PM - 7:00 PM) & Sabtu (10:00 AM)',
     venue: 'Bilik Akustik KPMBP',
     focus: 'Harmoni duet vokal dan teknik susunan instrumen akustik.',
@@ -92,7 +150,8 @@ const REHEARSAL_SCHEDULE = [
     whatsapp: 'https://wasap.my/60145313756'
   },
   {
-    event: 'Tarian Zapin',
+    eventKeyword: 'zapin',
+    eventTitle: 'Tarian Zapin',
     dayTime: 'Setiap Selasa & Jumaat (8:30 PM - 11:00 PM)',
     venue: 'Studio Tari KPMBP',
     focus: 'Ketepatan ragam zapin asli, keseragaman langkah & postur.',
@@ -101,7 +160,8 @@ const REHEARSAL_SCHEDULE = [
     whatsapp: 'https://wasap.my/60127142990'
   },
   {
-    event: 'Street Dakwah (From Chaos to Calm)',
+    eventKeyword: 'dakwah',
+    eventTitle: 'Street Dakwah (From Chaos to Calm)',
     dayTime: 'Sesi Rakaman Luar & Editing Mingguan',
     venue: 'Luar Kawasan Kolej (Tempat Umum)',
     focus: 'Rakaman temu ramah 3 responden, dalil sahih & video HD.',
@@ -120,92 +180,176 @@ export const PhaseAwareContingentDashboard: React.FC<PhaseAwareContingentDashboa
   isCompactModal = false
 }) => {
   const activePhase = SOAR_PHASES.find((p) => p.id === phaseState.activePhaseId) || SOAR_PHASES[2];
-  
-  // Member can preview other phases' priorities or return to active
-  const [selectedPhaseId, setSelectedPhaseId] = useState<SoarPhaseId>(activePhase.id);
 
-  // Sync selected phase with external phase updates if not manually previewing another
-  useEffect(() => {
-    setSelectedPhaseId(activePhase.id);
-  }, [activePhase.id]);
+  const userStorageKey = useMemo(() => {
+    return currentUser?.name 
+      ? 'kpmbp_member_action_checked_' + encodeURIComponent(currentUser.name.trim().toLowerCase())
+      : 'kpmbp_member_action_checked_default';
+  }, [currentUser?.name]);
 
-  const displayedPhase = SOAR_PHASES.find((p) => p.id === selectedPhaseId) || activePhase;
-  const isPreviewingOtherPhase = displayedPhase.id !== activePhase.id;
-
-  // Quick toggle to show personal checklist regardless of phase
-  const [showQuickChecklist, setShowQuickChecklist] = useState<boolean>(false);
-
-  // Selected event filter for personalized event guidance
-  const [selectedEventId, setSelectedEventId] = useState<string>(() => {
-    if (currentUser.eventAssigned) {
-      const match = EVENTS_DATA.find((e) => 
-        e.title.toLowerCase().includes(currentUser.eventAssigned!.toLowerCase()) ||
-        e.category.toLowerCase().includes(currentUser.eventAssigned!.toLowerCase())
-      );
-      if (match) return match.id;
-    }
-    return 'teater-islamik';
-  });
-
-  const activeEvent = EVENTS_DATA.find((e) => e.id === selectedEventId) || EVENTS_DATA[0];
-
-  // Personal packing checklist state
-  const [packingChecklist, setPackingChecklist] = useState(() => {
+  // 1. Task Checkbox Completion State persisted in localStorage (User-isolated)
+  const [checkedActionIds, setCheckedActionIds] = useState<Record<string, boolean>>(() => {
     try {
-      const saved = localStorage.getItem('kpmbp_member_personal_checklist');
+      const initialKey = currentUser?.name 
+        ? 'kpmbp_member_action_checked_' + encodeURIComponent(currentUser.name.trim().toLowerCase())
+        : 'kpmbp_member_action_checked_default';
+      const saved = localStorage.getItem(initialKey);
       if (saved) return JSON.parse(saved);
     } catch {}
-    return PERSONAL_PACKING_ITEMS;
+    return {
+      'pack-mykad': true,
+      'pack-borang-waris': true
+    };
   });
 
-  const handleTogglePackingItem = (id: string) => {
-    const updated = packingChecklist.map((item: any) =>
-      item.id === id ? { ...item, checked: !item.checked } : item
-    );
-    setPackingChecklist(updated);
+  // Re-sync when switching users
+  useEffect(() => {
     try {
-      localStorage.setItem('kpmbp_member_personal_checklist', JSON.stringify(updated));
+      const saved = localStorage.getItem(userStorageKey);
+      if (saved) {
+        setCheckedActionIds(JSON.parse(saved));
+      } else {
+        setCheckedActionIds({
+          'pack-mykad': true,
+          'pack-borang-waris': true
+        });
+      }
     } catch {}
+  }, [userStorageKey]);
+
+  const [showCompletedTasks, setShowCompletedTasks] = useState<boolean>(false);
+  const [showFullChecklistModal, setShowFullChecklistModal] = useState<boolean>(false);
+
+  const toggleActionItem = (id: string) => {
+    setCheckedActionIds((prev) => {
+      const updated = { ...prev, [id]: !prev[id] };
+      try {
+        localStorage.setItem(userStorageKey, JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
   };
 
-  const packingCompleted = packingChecklist.filter((i: any) => i.checked).length;
-  const packingPercent = Math.round((packingCompleted / packingChecklist.length) * 100);
+  // 2. Identify the member's assigned event(s)
+  const assignedEventText = (currentUser.eventAssigned || '').toLowerCase();
 
-  // Relevant deadlines matching active or displayed phase
-  const relevantDeadlines = SUBMISSION_DEADLINES.slice(0, 4);
+  const matchedEvents: EventDetail[] = useMemo(() => {
+    if (!currentUser.eventAssigned || assignedEventText.includes('umum') || assignedEventText.includes('semua')) {
+      return [];
+    }
+    return EVENTS_DATA.filter((e) => {
+      const t = e.title.toLowerCase();
+      const c = e.category.toLowerCase();
+      return (
+        t.includes(assignedEventText) ||
+        assignedEventText.includes(t) ||
+        c.includes(assignedEventText) ||
+        assignedEventText.includes(c) ||
+        (assignedEventText.includes('teater') && e.id === 'teater-islamik') ||
+        (assignedEventText.includes('zapin') && e.id === 'tarian-zapin') ||
+        (assignedEventText.includes('band') && e.id === 'battle-of-the-band') ||
+        (assignedEventText.includes('duo') && e.id === 'symphonic-duo') ||
+        (assignedEventText.includes('dakwah') && e.id === 'street-dakwah')
+      );
+    });
+  }, [currentUser.eventAssigned, assignedEventText]);
 
-  // If user is public, show authorization gate
+  // Primary event (if any matched)
+  const primaryEvent = matchedEvents.length > 0 ? matchedEvents[0] : null;
+
+  // Matching rehearsal info for primary event
+  const matchedRehearsal = useMemo(() => {
+    if (!primaryEvent && !currentUser.eventAssigned) return null;
+    const term = (primaryEvent?.title || currentUser.eventAssigned || '').toLowerCase();
+    return REHEARSAL_SCHEDULE.find((r) => term.includes(r.eventKeyword));
+  }, [primaryEvent, currentUser.eventAssigned]);
+
+  // 3. Collect Real Member Tasks from Traceable Items + Packing Items
+  const memberTasks = useMemo(() => {
+    // If user has specific event, fetch event's traceable tasks
+    const eventFilter = primaryEvent ? primaryEvent.title : 'Umum Kontinjen';
+    const traceableItems = getAllTraceableChecklistItems(eventFilter);
+
+    // Merge packing items for members and all roles
+    const combined = [
+      ...PERSONAL_PACKING_ITEMS,
+      ...traceableItems
+    ];
+
+    // Filter duplicates by id
+    const seen = new Set<string>();
+    return combined.filter((item) => {
+      if (seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+  }, [primaryEvent]);
+
+  // Split tasks into:
+  // - Perlu Dibuat Sekarang (Now: Active & pending)
+  // - Selesai (Completed)
+  const pendingTasks = memberTasks.filter((t) => !checkedActionIds[t.id]);
+  const completedTasks = memberTasks.filter((t) => checkedActionIds[t.id]);
+
+  const totalTasksCount = memberTasks.length;
+  const completedTasksCount = completedTasks.length;
+  const progressPercent = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
+
+  // 4. Relevant Upcoming Dates (NEXT)
+  const upcomingMilestones = useMemo(() => {
+    const list = [];
+    if (matchedRehearsal) {
+      list.push({
+        date: 'Setiap Minggu',
+        title: `Sesi Latihan / Raptai: ${matchedRehearsal.dayTime}`,
+        venue: matchedRehearsal.venue,
+        tag: 'Latihan Pasukan'
+      });
+    }
+    list.push({
+      date: '10 September 2026',
+      title: 'Tarikh Akhir Submisi Dokumen & Borang Rasmi',
+      venue: 'Portal Rasmi & Sekretariat',
+      tag: 'Penyerahan'
+    });
+    list.push({
+      date: '15 Oktober 2026 (2.00 ptg)',
+      title: 'Ketibaan & Pendaftaran Kontinjen di Kolej MARA Banting',
+      venue: 'Kolej MARA Banting, Selangor',
+      tag: 'Hari 1 Festival'
+    });
+    if (primaryEvent) {
+      list.push({
+        date: primaryEvent.dateStr || '16–17 Oktober 2026',
+        title: `Pentas Pertandingan: ${primaryEvent.title}`,
+        venue: primaryEvent.venue,
+        tag: 'Pentas Acara'
+      });
+    }
+    return list.slice(0, 3);
+  }, [matchedRehearsal, primaryEvent]);
+
+  // =========================================================================
+  // PUBLIC ACCESS GUARD (If role === 'public')
+  // =========================================================================
   if (currentUser.role === 'public') {
     return (
-      <div className={`space-y-6 ${isCompactModal ? 'p-2' : 'max-w-4xl mx-auto px-4 sm:px-6 py-12'}`}>
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-lg text-center space-y-6">
-          <div className="w-16 h-16 mx-auto rounded-3xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shadow-inner">
+      <div className={`space-y-6 ${isCompactModal ? 'p-2' : 'max-w-3xl mx-auto px-4 sm:px-6 py-12'}`}>
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-sm text-center space-y-6">
+          <div className="w-16 h-16 mx-auto rounded-3xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center">
             <Lock className="w-8 h-8" />
           </div>
 
-          <div className="space-y-2 max-w-lg mx-auto">
+          <div className="space-y-2 max-w-md mx-auto">
             <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200 inline-block">
-              Pusat Maklumat Ahli Berfasa
+              Ruang Khusus Ahli Kontinjen
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 font-display">
-              Portal Operasi Kontinjen KPMBP
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 font-display">
+              Log Masuk Dashboard Ahli
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Dashboard ini mengandungi maklumat sulit persediaan operasi Kontinjen SOAR 2026, termasuk jadual latihan intensif, call-time raptai, senarai semak beg peribadi, dan arahan urus setia mengikut fasa aktif.
+              Dashboard Ahli menyediakan senarai tindakan peribadi (*Now*), tugasan persiapan acara (*Next*), dan senarai semak logistik bagi kontinjen KPMBP.
             </p>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-md mx-auto text-left space-y-2 text-xs">
-            <div className="font-extrabold text-slate-800 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Akses dibenarkan untuk:</span>
-            </div>
-            <ul className="space-y-1 text-slate-600 pl-5 list-disc">
-              <li>35 orang Pelajar kontinjen yang terpilih</li>
-              <li>Pensyarah Pengiring & Advisor Acara</li>
-              <li>Pegawai PIC Acara & Krew Produksi</li>
-              <li>Penyelaras & Urus Setia Kontinjen KPMBP</li>
-            </ul>
           </div>
 
           <div className="pt-2">
@@ -217,10 +361,10 @@ export const PhaseAwareContingentDashboard: React.FC<PhaseAwareContingentDashboa
                   onOpenAdminWorkspace('access');
                 }
               }}
-              className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-2xl text-xs sm:text-sm font-extrabold shadow-lg shadow-blue-600/25 transition-all cursor-pointer inline-flex items-center gap-2 hover:scale-[1.02]"
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer inline-flex items-center gap-2"
             >
               <UserCheck className="w-4 h-4" />
-              <span>Sahkan Pengenalan / Log Masuk Ahli Kontinjen</span>
+              <span>Sahkan Identiti / Log Masuk Ahli Kontinjen</span>
             </button>
           </div>
         </div>
@@ -228,823 +372,486 @@ export const PhaseAwareContingentDashboard: React.FC<PhaseAwareContingentDashboa
     );
   }
 
+  // =========================================================================
+  // AUTHENTICATED MEMBER DASHBOARD (NOW → NEXT → REFERENCE)
+  // =========================================================================
   return (
-    <div className={`space-y-6 ${isCompactModal ? 'p-1' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'}`}>
+    <div className={`space-y-6 ${isCompactModal ? 'p-2' : 'max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6'}`}>
       
-      {/* 1. MEMBER SECURITY IDENTITY & PHASE BADGE HEADER */}
-      <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 rounded-3xl p-5 sm:p-7 text-white shadow-xl relative overflow-hidden border border-blue-900/40">
-        <div className="absolute top-0 right-0 -mr-12 -mt-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 -mb-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-          <div className="space-y-2.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-                currentUser.role === 'admin'
-                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                  : currentUser.role === 'advisor'
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                  : currentUser.role === 'pic'
-                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
-                  : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-              }`}>
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>{currentUser.badge || 'AHLI KONTINJEN DISAHKAN'}</span>
-              </span>
-
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-300 bg-white/10 px-2.5 py-1 rounded-full border border-white/10">
-                <Sparkles className="w-3 h-3 text-amber-400" />
-                <span>Portal Ahli Berfasa (SES v5.0)</span>
-              </span>
-            </div>
-
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight font-display text-white">
-                Selamat Bertugas, {currentUser.name || 'Warga Kontinjen KPMBP'}
-              </h2>
-              <p className="text-xs sm:text-sm text-blue-200/90 font-medium mt-0.5">
-                {currentUser.title || 'Peserta / Krew Kontinjen SOAR 2026'} &bull; {SOAR_METADATA.theme}
-              </p>
-            </div>
-          </div>
-
-          {/* Active Phase Intelligence Pill */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 sm:p-5 flex items-center justify-between lg:justify-end gap-4 shrink-0">
-            <div className="text-left lg:text-right">
-              <div className="flex items-center gap-1.5 lg:justify-end text-[10px] uppercase font-extrabold tracking-wider text-amber-300">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>FASA OPERASI AKTIF</span>
-              </div>
-              <div className="text-base sm:text-lg font-black text-white font-display">
-                Fasa {activePhase.phaseNumber}: {activePhase.title}
-              </div>
-              <div className="text-[11px] text-blue-200">
-                Tempoh: {activePhase.period}
-              </div>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-blue-600/40 border border-blue-400/40 flex items-center justify-center text-cyan-300 shrink-0">
-              <Compass className="w-6 h-6" />
-            </div>
-          </div>
-        </div>
-
-        {/* Real-time Broadcast Notice if available */}
-        {phaseState.announcement && (
-          <div className="mt-5 p-3.5 rounded-2xl bg-amber-500/15 border border-amber-400/30 flex items-start gap-3">
-            <Megaphone className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <div className="text-xs">
-              <span className="font-extrabold text-amber-300 uppercase tracking-wide mr-1.5">
-                Arahan Rasmi Urus Setia:
-              </span>
-              <span className="text-slate-100 font-medium">
-                "{phaseState.announcement}"
-              </span>
-              {phaseState.updatedBy && (
-                <span className="text-[10px] text-slate-300 block mt-0.5 font-mono">
-                  Dikeluarkan oleh: {phaseState.updatedBy}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 2. PHASE SELECTOR / LIFECYCLE HORIZONTAL PROGRESSION */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-5 shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Compass className="w-4 h-4 text-blue-600" />
-            <span className="font-extrabold text-xs text-slate-900 uppercase tracking-wider">
-              Garis Masa 6 Fasa Operasi Kontinjen
+      {/* GREETING & CONTEXT HEADER */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`px-2.5 py-0.5 rounded-full font-black text-[10px] uppercase tracking-wider ${
+              currentUser.role === 'admin'
+                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                : currentUser.role === 'advisor'
+                ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                : currentUser.role === 'pic'
+                ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                : 'bg-cyan-100 text-cyan-800 border border-cyan-300'
+            }`}>
+              {currentUser.badge || 'AHLI KONTINJEN'}
+            </span>
+            <span className="text-xs text-slate-400">&bull;</span>
+            <span className="text-xs font-semibold text-slate-600">
+              Fasa {activePhase.phaseNumber}: {activePhase.title}
             </span>
           </div>
-          {isPreviewingOtherPhase && (
-            <button
-              onClick={() => setSelectedPhaseId(activePhase.id)}
-              className="text-[11px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 cursor-pointer flex items-center gap-1"
-            >
-              <span>Kembali ke Fasa Aktif ({activePhase.phaseNumber})</span>
-            </button>
-          )}
+
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-display">
+            Hai, {currentUser.name}
+          </h1>
+
+          <p className="text-xs text-slate-500 font-medium">
+            {currentUser.title || 'Peserta Kontinjen'}
+            {currentUser.eventAssigned && (
+              <span className="text-blue-700 font-bold ml-1">
+                &bull; Acara: {currentUser.eventAssigned}
+              </span>
+            )}
+          </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-          {SOAR_PHASES.map((p) => {
-            const isLive = p.id === activePhase.id;
-            const isSelected = p.id === displayedPhase.id;
-
-            return (
-              <button
-                key={p.id}
-                onClick={() => setSelectedPhaseId(p.id)}
-                className={`p-3 rounded-2xl border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
-                  isSelected
-                    ? 'bg-blue-600 text-white border-blue-700 shadow-md shadow-blue-600/20 scale-[1.02]'
-                    : isLive
-                    ? 'bg-emerald-50 text-emerald-950 border-emerald-300 hover:bg-emerald-100/80'
-                    : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-1 mb-1">
-                  <span className={`text-[10px] font-black uppercase font-mono px-1.5 py-0.5 rounded ${
-                    isSelected
-                      ? 'bg-white/20 text-white'
-                      : isLive
-                      ? 'bg-emerald-200/70 text-emerald-900 font-bold'
-                      : 'bg-slate-200/70 text-slate-700'
-                  }`}>
-                    Fasa {p.phaseNumber}
-                  </span>
-                  {isLive && (
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" title="Fasa Operasi Aktif" />
-                  )}
-                </div>
-
-                <div className={`text-xs font-extrabold truncate ${isSelected ? 'text-white' : 'text-slate-900'}`}>
-                  {p.title}
-                </div>
-
-                <div className={`text-[10px] mt-1 line-clamp-1 ${isSelected ? 'text-blue-100' : 'text-slate-500'}`}>
-                  {p.period}
-                </div>
-              </button>
-            );
-          })}
+        {/* Quick Jump to Public or Workspace */}
+        <div className="flex items-center gap-2 shrink-0">
+          {currentUser.role === 'admin' && onOpenAdminWorkspace && (
+            <button
+              onClick={() => onOpenAdminWorkspace('phases')}
+              className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs border border-amber-300 transition-colors cursor-pointer"
+            >
+              Urus Admin &rarr;
+            </button>
+          )}
+          <button
+            onClick={() => onNavigateTab('overview')}
+            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+          >
+            Laman Utama &rarr;
+          </button>
         </div>
       </div>
 
-      {/* 3. ACTIVE PHASE PRIORITY BRIEFING CARD */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+      {/* ANNOUNCEMENT BROADCAST (IF ANY) */}
+      {phaseState.announcement && phaseState.announcement.trim() !== '' && (
+        <div className="bg-amber-50/90 border border-amber-300 rounded-2xl p-4 flex items-start gap-3 shadow-2xs">
+          <Megaphone className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+          <div className="text-xs text-slate-800">
+            <strong className="text-amber-950 block mb-0.5">Peringatan Urus Setia Kontinjen:</strong>
+            <p className="leading-relaxed">{phaseState.announcement}</p>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          1. CURRENT FOCUS (NOW)
+         ========================================================================= */}
+      <section className="bg-linear-to-br from-blue-50/80 to-indigo-50/50 border border-blue-200 rounded-2xl p-5 shadow-xs space-y-3.5">
+        <div className="flex items-center justify-between pb-2.5 border-b border-blue-200/60">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <h2 className="text-xs font-black uppercase tracking-wider text-blue-900 font-display">
+              Fokus Sekarang (Now)
+            </h2>
+          </div>
+          <span className="text-[11px] font-bold text-blue-700 bg-white/80 px-2.5 py-0.5 rounded-full border border-blue-200">
+            Fasa {activePhase.phaseNumber} / 06
+          </span>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h3 className="text-base sm:text-lg font-black text-slate-900">
+              {primaryEvent ? primaryEvent.title : (currentUser.eventAssigned || 'Kontinjen KPMBP')}
+            </h3>
+
+            {primaryEvent && (
+              <button
+                onClick={() => onNavigateTab('events')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-2xs transition-colors self-start sm:self-auto cursor-pointer"
+              >
+                <span>Buka Maklumat Acara</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div className="bg-white/90 border border-blue-100 rounded-xl p-3 text-xs text-slate-700 space-y-1 shadow-2xs">
+            <div>
+              <strong className="text-slate-900">Fokus Fasa Semasa: </strong>
+              <span>{activePhase.priorityFocus}</span>
+            </div>
+
+            {matchedRehearsal && (
+              <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="flex items-start gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-slate-900">Jadual Latihan: </span>
+                    <span>{matchedRehearsal.dayTime} ({matchedRehearsal.venue})</span>
+                  </div>
+                </div>
+
+                {matchedRehearsal.phone && (
+                  <a
+                    href={matchedRehearsal.whatsapp}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:underline shrink-0"
+                  >
+                    <PhoneCall className="w-3 h-3" />
+                    <span>WhatsApp Penasihat ({matchedRehearsal.leadAdvisor})</span>
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          2. MY ACTIONS (TINDAKAN SAYA) — CORE INTERACTIVE SECTION
+         ========================================================================= */}
+      <section className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
           <div>
             <div className="flex items-center gap-2">
-              <span className={`text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
-                displayedPhase.colorScheme.badgeBg
-              }`}>
-                {displayedPhase.statusBadge}
-              </span>
-              {displayedPhase.id === activePhase.id && (
-                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                  Sedang Berjalan
-                </span>
-              )}
+              <ListTodo className="w-4 h-4 text-blue-600" />
+              <h2 className="text-sm sm:text-base font-black text-slate-900 font-display">
+                Tindakan Saya ({pendingTasks.length} Belum Selesai)
+              </h2>
             </div>
-            <h3 className="text-xl font-black text-slate-900 font-display mt-1">
-              Fokus Utama: {displayedPhase.title}
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-              {displayedPhase.priorityFocus}
+            <p className="text-xs text-slate-500 mt-0.5">
+              Tandakan tugasan yang telah anda selesaikan bagi memastikan pematuhan pasukan.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => onNavigateTab(displayedPhase.ctaTab)}
-              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <span>{displayedPhase.ctaText}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Phase Key Objectives */}
-        <div className="space-y-2">
-          <span className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>Objektif Kritikal Fasa {displayedPhase.phaseNumber}:</span>
-          </span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {displayedPhase.keyObjectives.map((obj, idx) => (
-              <div
-                key={idx}
-                className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-2.5 text-xs text-slate-800"
-              >
-                <div className="h-5 w-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-mono font-bold text-[10px] shrink-0 mt-0.5">
-                  {idx + 1}
-                </div>
-                <span className="font-medium leading-relaxed">{obj}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 4. DYNAMIC PHASE-SPECIFIC INTELLIGENCE MODULES */}
-      {/* We prioritize information specifically tailored to the selected/active phase without duplicating existing database records */}
-
-      {/* PHASE 01: AUDITIONS & TALENT SELECTION */}
-      {displayedPhase.id === 'phase_01' && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h4 className="font-black text-base text-slate-900 flex items-center gap-2">
-              <Users className="w-5 h-5 text-emerald-600" />
-              <span>Prioriti Fasa 01: Saringan Uji Bakat & Kuota 35 Pelajar</span>
-            </h4>
-            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-              Borang Pendaftaran Dibuka
+          <div className="flex items-center gap-2 text-xs self-start sm:self-auto">
+            <span className="font-bold text-slate-600">
+              {completedTasksCount} / {totalTasksCount} Selesai ({progressPercent}%)
             </span>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-2">
-              <span className="font-black text-emerald-900 text-xs block">Syarat Uji Bakat Online</span>
-              <p className="text-xs text-slate-700">
-                Sediakan pautan video demonstrasi persembahan (Google Drive / YouTube) berdurasi 1–3 minit untuk penilaian awal pensyarah penasihat.
-              </p>
-              <button
-                onClick={() => onNavigateTab('talent')}
-                className="mt-2 text-xs font-extrabold text-emerald-800 underline cursor-pointer flex items-center gap-1"
-              >
-                <span>Hantar Borang Bakat Sekarang</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 space-y-2">
-              <span className="font-black text-blue-900 text-xs block">Kuota Kontinjen KPMBP</span>
-              <p className="text-xs text-slate-700">
-                Maksimum 35 pelajar akan dipilih mewakili 5 acara pertandingan SOAR 2026. Saringan fizikal akan dijadualkan selepas pendaftaran ditutup.
-              </p>
-              <button
-                onClick={() => onNavigateTab('events')}
-                className="mt-2 text-xs font-extrabold text-blue-800 underline cursor-pointer flex items-center gap-1"
-              >
-                <span>Semak Kriteria 5 Acara</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-2">
-              <span className="font-black text-purple-900 text-xs block">Pusat Penilaian Penasihat</span>
-              <p className="text-xs text-slate-700">
-                Setiap acara diketuai oleh pensyarah penasihat khusus bagi memastikan pematuhan kualiti, vokal, penghayatan dan busana syariah.
-              </p>
-              <span className="text-[11px] text-purple-800 font-bold block mt-1">
-                Teater (Muzlinda), Duo (Khairi), Zapin (Saba), BOTB (Syam), Dakwah (Halimatul).
-              </span>
-            </div>
-          </div>
         </div>
-      )}
 
-      {/* PHASE 02: CONFIRMATION & EVENT PLANNING */}
-      {displayedPhase.id === 'phase_02' && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h4 className="font-black text-base text-slate-900 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-blue-600" />
-              <span>Prioriti Fasa 02: Roster Sah & Deadline Penyerahan Awal</span>
+        {/* Progress Bar */}
+        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
+          <div 
+            className="bg-blue-600 h-full transition-all duration-300 rounded-full"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
+        {/* Action Items List */}
+        {memberTasks.length === 0 ? (
+          // SES Compliant Empty State
+          <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+            <CheckCircle2 className="w-8 h-8 text-slate-400 mx-auto" />
+            <h4 className="font-bold text-slate-800 text-xs sm:text-sm">
+              Tiada tindakan diperlukan buat masa ini.
             </h4>
-            <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
-              Deadline: 10 Sept 2026
-            </span>
+            <p className="text-xs text-slate-500">
+              Semua tugasan persediaan dan senarai semak telah dikemaskini.
+            </p>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-amber-900 text-xs">Penyerahan Skrip Teater Islamik</span>
-                <span className="text-[10px] font-mono bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold">10 Sept</span>
+        ) : (
+          <div className="space-y-3">
+            {/* Pending Tasks */}
+            {pendingTasks.length === 0 ? (
+              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2 font-medium">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Tahniah! Semua tugasan aktif telah ditandakan selesai.</span>
               </div>
-              <p className="text-xs text-slate-700 leading-relaxed">
-                Wajib menyerahkan senarai nama peserta, watak pementasan, skrip penuh bertemakan "Masar Al-Masajid", dan spesifikasi produksi pentas.
-              </p>
-              <button
-                onClick={() => onNavigateTab('events')}
-                className="text-xs font-bold text-amber-800 underline cursor-pointer"
-              >
-                Lihat Peraturan Penuh Teater
-              </button>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-blue-900 text-xs">Pendaftaran Rasmi Street Dakwah</span>
-                <span className="text-[10px] font-mono bg-blue-200 text-blue-900 px-2 py-0.5 rounded font-bold">10 Sept</span>
-              </div>
-              <p className="text-xs text-slate-700 leading-relaxed">
-                Penyerahan nama 4 orang peserta Street Dakwah kepada urus setia penganjur bersama konsep awal video bertemakan "From Chaos to Calm".
-              </p>
-              <button
-                onClick={() => onNavigateTab('guidelines')}
-                className="text-xs font-bold text-blue-800 underline cursor-pointer"
-              >
-                Semak Garis Panduan Syariah & AI
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* PHASE 03: INTENSIVE REHEARSAL & PREPARATION (CURRENT ACTIVE DEFAULT) */}
-      {displayedPhase.id === 'phase_03' && (
-        <div className="space-y-6">
-          {/* Main Phase 03 Hub */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-              <div>
-                <h4 className="font-black text-base text-slate-900 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-amber-600" />
-                  <span>Jadual Latihan Intensif Mingguan Kontinjen KPMBP</span>
-                </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Sesi latihan berjadual setiap pasukan di dewan dan studio KPM Bandar Penawar.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => onNavigateTab('calculator')}
-                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black rounded-xl text-xs shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
-                >
-                  <Calculator className="w-3.5 h-3.5" />
-                  <span>Simulasi Skor Rubrik</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Rehearsal Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {REHEARSAL_SCHEDULE.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all flex flex-col justify-between space-y-3"
-                >
-                  <div className="space-y-1.5">
-                    <span className="font-black text-slate-900 text-xs block">
-                      {item.event}
-                    </span>
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-700">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{item.dayTime}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{item.venue}</span>
-                    </div>
-                    <p className="text-[11px] text-slate-600 pt-1 leading-relaxed">
-                      {item.focus}
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-slate-600">
-                      Penasihat: <strong>{item.leadAdvisor}</strong>
-                    </span>
-                    <a
-                      href={item.whatsapp}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[10px] font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg transition-colors inline-flex items-center gap-1"
-                    >
-                      <PhoneCall className="w-3 h-3" />
-                      <span>WhatsApp</span>
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Critical Phase 03 Milestone: Street Dakwah Video Submission */}
-          <div className="bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 rounded-3xl p-5 sm:p-6 text-white shadow-md border border-purple-800/40">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            ) : (
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-400/20 text-purple-200 text-xs font-bold border border-purple-300/30">
-                  <Video className="w-3.5 h-3.5 text-purple-300" />
-                  <span>PERINGATAN TARIKH AKHIR PRODUKSI FASA 03</span>
-                </div>
-                <h4 className="text-lg sm:text-xl font-black font-display">
-                  Penyerahan Video Street Dakwah: 1 Oktober 2026 (5:00 Petang)
-                </h4>
-                <p className="text-xs sm:text-sm text-purple-200/90 leading-relaxed max-w-2xl">
-                  Video wajib dirakam di lokasi umum luar kolej dalam resolusi Full HD. PENGGUNAAN AI TIDAK DIBENARKAN untuk menjana kandungan utama (hanya pemprosesan noise reduction / penstabilan video dibenarkan).
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
-                <button
-                  onClick={() => onNavigateTab('guidelines')}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold border border-white/20 transition-all cursor-pointer"
-                >
-                  Semak Syarat AI
-                </button>
-                <button
-                  onClick={() => onNavigateTab('calculator')}
-                  className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-xl text-xs font-black shadow-md transition-all cursor-pointer"
-                >
-                  Rubrik Street Dakwah
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Option to Preview/Check Personal Packing Readiness */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center shrink-0">
-                <CheckSquare className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-xs font-bold text-slate-800 block">
-                  Semakan Awal Beg & Dokumen Peribadi
-                </span>
-                <span className="text-[11px] text-slate-500">
-                  {packingCompleted} daripada {packingChecklist.length} item peribadi siap ({packingPercent}%)
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowQuickChecklist((prev) => !prev)}
-              className="text-xs font-bold text-violet-700 hover:text-violet-900 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-xl border border-violet-200 transition-colors cursor-pointer self-start sm:self-auto"
-            >
-              {showQuickChecklist ? 'Tutup Semakan Awal' : 'Buka Semakan Awal Beg'}
-            </button>
-          </div>
-
-          {showQuickChecklist && (
-            <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <h5 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                  <CheckSquare className="w-4 h-4 text-violet-600" />
-                  <span>Checklist Beg & Dokumen Peribadi (Persediaan Awal Fasa 04)</span>
-                </h5>
-                <span className="text-xs font-mono font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200">
-                  {packingPercent}% Lengkap
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {packingChecklist.map((item: any) => (
+                {pendingTasks.map((task) => (
                   <div
-                    key={item.id}
-                    onClick={() => handleTogglePackingItem(item.id)}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 ${
-                      item.checked
-                        ? 'bg-emerald-50/60 border-emerald-300 text-slate-900'
-                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                    }`}
+                    key={task.id}
+                    onClick={() => toggleActionItem(task.id)}
+                    className="p-3 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-slate-50/70 transition-all flex items-start gap-3 cursor-pointer group"
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 ${
-                        item.checked ? 'bg-emerald-600 text-white' : 'border border-slate-400 bg-white'
-                      }`}>
-                        {item.checked && <CheckCircle2 className="w-3.5 h-3.5" />}
+                    <input
+                      type="checkbox"
+                      checked={false}
+                      onChange={() => {}} // handled by parent onClick
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    />
+                    <div className="flex-1 space-y-1 text-xs">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="font-bold text-slate-900 group-hover:text-blue-900 leading-snug">
+                          {task.taskText}
+                        </span>
+                        {task.deadline && (
+                          <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 shrink-0">
+                            {task.deadline}
+                          </span>
+                        )}
                       </div>
-                      <span className={`text-xs truncate ${item.checked ? 'line-through text-slate-500' : 'font-medium'}`}>
-                        {item.text}
-                      </span>
+                      <div className="text-[10px] text-slate-400 flex items-center gap-1.5">
+                        <span>Punca: <strong>{task.sourceDocument}</strong></span>
+                        {task.mandatory && (
+                          <span className="text-rose-600 font-bold">&bull; [Wajib]</span>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-700 shrink-0">
-                      {item.category}
-                    </span>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
 
-      {/* PHASE 04: FINAL PREPARATION & LOGISTICS READINESS */}
-      {displayedPhase.id === 'phase_04' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-              <div>
-                <h4 className="font-black text-base text-slate-900 flex items-center gap-2">
-                  <CheckSquare className="w-5 h-5 text-violet-600" />
-                  <span>Senarai Semak Persediaan & Beg Peribadi Pelajar</span>
-                </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Pastikan semua dokumen pengenalan dan pakaian rasmi lengkap sebelum hari pelepasan.
-                </p>
-              </div>
-              <div className="text-right">
-                <span className="text-xs font-black text-violet-800 bg-violet-50 px-3 py-1 rounded-full border border-violet-200">
-                  {packingCompleted} / {packingChecklist.length} Lengkap ({packingPercent}%)
-                </span>
-              </div>
-            </div>
-
-            {/* Progress bar */}
-            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-violet-500 to-indigo-600 h-full transition-all duration-300 rounded-full"
-                style={{ width: `${packingPercent}%` }}
-              />
-            </div>
-
-            {/* Interactive Checkbox Items */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-              {packingChecklist.map((item: any) => (
-                <div
-                  key={item.id}
-                  onClick={() => handleTogglePackingItem(item.id)}
-                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
-                    item.checked
-                      ? 'bg-violet-50/40 border-violet-200 text-slate-700'
-                      : 'bg-white border-slate-200 hover:border-slate-300 text-slate-900'
-                  }`}
+            {/* Collapsible Completed Tasks Section */}
+            {completedTasks.length > 0 && (
+              <div className="pt-2 border-t border-slate-100">
+                <button
+                  onClick={() => setShowCompletedTasks(!showCompletedTasks)}
+                  className="flex items-center justify-between w-full text-xs font-bold text-slate-500 hover:text-slate-800 py-1 cursor-pointer"
                 >
-                  <div className="mt-0.5 shrink-0">
-                    {item.checked ? (
-                      <CheckCircle2 className="w-5 h-5 text-violet-600" />
-                    ) : (
-                      <Circle className="w-5 h-5 text-slate-300" />
-                    )}
-                  </div>
-                  <div className="space-y-0.5">
-                    <span className={`text-xs font-semibold block ${item.checked ? 'line-through text-slate-400' : 'text-slate-900'}`}>
-                      {item.text}
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      Kategori: {item.category}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  <span>Tugasan Telah Selesai ({completedTasks.length})</span>
+                  {showCompletedTasks ? (
+                    <ChevronUp className="w-4 h-4" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4" />
+                  )}
+                </button>
 
-            <div className="pt-3 flex justify-between items-center border-t border-slate-100">
-              <span className="text-xs text-slate-500">
-                Peringatan: Tag beg bagasi dan label bilik asrama akan diedarkan semasa taklimat pelepasan.
-              </span>
-              <button
-                onClick={() => onNavigateTab('checklist')}
-                className="text-xs font-bold text-violet-700 hover:text-violet-900 underline cursor-pointer"
-              >
-                Lihat 38 Checklist Logistik Penuh
-              </button>
-            </div>
-          </div>
-
-          {/* Pelepasan Kontinjen Alert */}
-          <div className="p-5 rounded-3xl bg-blue-50 border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2.5 bg-blue-600 text-white rounded-2xl shrink-0">
-                <Bus className="w-6 h-6" />
+                {showCompletedTasks && (
+                  <div className="space-y-1.5 pt-2">
+                    {completedTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        onClick={() => toggleActionItem(task.id)}
+                        className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70 flex items-center gap-3 cursor-pointer opacity-70 hover:opacity-100 transition-opacity"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={true}
+                          onChange={() => {}}
+                          className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        />
+                        <span className="text-xs text-slate-600 line-through">
+                          {task.taskText}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="space-y-1">
-                <h5 className="font-extrabold text-blue-950 text-sm">
-                  Pelepasan Bas Kontinjen: 15 Oktober 2026 (Khamis), 8:00 Pagi
-                </h5>
-                <p className="text-xs text-slate-700 leading-relaxed">
-                  Lapor diri di Lobi Kolej KPMBP. Taklimat keselamatan, pengesahan kehadiran 41 pax dan pelepasan ke Kolej MARA Banting (KMB).
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* =========================================================================
+          3. MY EVENT (ACARA SAYA)
+         ========================================================================= */}
+      <section className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
+        <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4 text-blue-600" />
+            <h2 className="text-sm sm:text-base font-black text-slate-900 font-display">
+              Acara Saya
+            </h2>
+          </div>
+          <button
+            onClick={() => onNavigateTab('events')}
+            className="text-xs font-bold text-blue-600 hover:underline cursor-pointer"
+          >
+            Lihat Semua Acara &rarr;
+          </button>
+        </div>
+
+        {primaryEvent ? (
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+              <div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200 uppercase">
+                  {primaryEvent.category}
+                </span>
+                <h3 className="font-bold text-slate-900 text-base mt-1">
+                  {primaryEvent.title}
+                </h3>
+                <p className="text-xs text-slate-500 italic">
+                  "{primaryEvent.theme}"
                 </p>
               </div>
-            </div>
-            <button
-              onClick={() => onNavigateTab('schedule')}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm shrink-0 cursor-pointer"
-            >
-              Tentatif Perjalanan
-            </button>
-          </div>
-        </div>
-      )}
 
-      {/* PHASE 05: LIVE EVENT OPERATIONS */}
-      {displayedPhase.id === 'phase_05' && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h4 className="font-black text-base text-slate-900 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-rose-600" />
-              <span>Prioriti Fasa 05: Operasi Langsung & Jadual Call-Time Pentas</span>
-            </h4>
-            <span className="text-xs font-black text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
-              Festival Sedang Berlangsung
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-              <span className="font-bold text-xs text-slate-900 block">Jumaat, 16 Oktober (KMB Banting)</span>
-              <ul className="text-xs text-slate-700 space-y-1">
-                <li>&bull; 09:00 AM - Pertandingan Tarian Zapin</li>
-                <li>&bull; 02:30 PM - Pertandingan Symphonic Duo</li>
-                <li>&bull; 08:30 PM - Saringan BOTB (Rock Malaya)</li>
-              </ul>
+              <div className="text-left sm:text-right text-xs text-slate-600 space-y-0.5">
+                <div>Peranan: <strong className="text-slate-900">{currentUser.title}</strong></div>
+                <div>Kouta: <strong className="text-slate-900">{primaryEvent.participantsCount}</strong></div>
+              </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2">
-              <span className="font-bold text-xs text-amber-950 block">Sabtu, 17 Oktober (JKKN Seremban)</span>
-              <ul className="text-xs text-slate-700 space-y-1">
-                <li>&bull; 07:00 AM - Bas bertolak ke Seremban</li>
-                <li>&bull; 08:30 AM - Pementasan Teater Islamik</li>
-                <li>&bull; 02:00 PM - Showcase Street Dakwah</li>
-              </ul>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/70 text-slate-700">
+              <div className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span>Pentas: <strong>{primaryEvent.venue}</strong></span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                <span>Tarikh: <strong>{primaryEvent.dateStr}</strong></span>
+              </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 space-y-2">
-              <span className="font-bold text-xs text-emerald-950 block">Ahad, 18 Oktober (Penutupan)</span>
-              <ul className="text-xs text-slate-700 space-y-1">
-                <li>&bull; 09:30 AM - Majlis Penutupan Rasmi</li>
-                <li>&bull; 11:30 AM - Pengumuman Keputusan</li>
-                <li>&bull; 02:00 PM - Perjalanan Pulang ke KPMBP</li>
-              </ul>
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-2">
+              <button
+                onClick={() => onNavigateTab('events')}
+                className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-colors cursor-pointer"
+              >
+                Buka Butiran Acara & Syarat &rarr;
+              </button>
+
+              {primaryEvent.rubric && (
+                <button
+                  onClick={() => onNavigateTab('calculator')}
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs border border-slate-300 transition-colors cursor-pointer"
+                >
+                  Rubrik Penjurian (Kalkulator)
+                </button>
+              )}
             </div>
           </div>
-
-          <div className="pt-2 flex justify-end">
-            <button
-              onClick={() => onNavigateTab('schedule')}
-              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer"
-            >
-              Lihat Tentatif Masa Penuh & Call-Time
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* PHASE 06: POST-SOAR EVALUATION & DOCUMENTATION */}
-      {displayedPhase.id === 'phase_06' && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h4 className="font-black text-base text-slate-900 flex items-center gap-2">
-              <Award className="w-5 h-5 text-slate-700" />
-              <span>Prioriti Fasa 06: Keputusan Rasmi, Penilaian & Apresiasi</span>
-            </h4>
-            <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full">
-              Pasca Acara
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
-              <span className="font-bold text-xs text-slate-900 block">Kompilasi Keputusan Rasmi</span>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Keputusan rasmi penjurian bagi 5 acara pertandingan SOAR IPMA 2026 akan dipaparkan dan diarkibkan untuk rekod kolej.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
-              <span className="font-bold text-xs text-slate-900 block">Sijil Penyertaan & Apresiasi</span>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Pengedaran sijil penyertaan rasmi kepada semua 35 pelajar dan 4 pegawai pengiring, disusuli majlis apresiasi kontinjen.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 5. PERSONALIZED ASSIGNED EVENT SPOTLIGHT */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-          <div>
-            <div className="text-[10px] font-extrabold uppercase tracking-wider text-blue-600">
-              Penyelarasan Acara Peribadi
-            </div>
-            <h4 className="font-black text-base text-slate-900 flex items-center gap-2 mt-0.5">
-              <Layers className="w-4 h-4 text-blue-600" />
-              <span>Panduan Khusus Acara: {activeEvent.title}</span>
-            </h4>
-          </div>
-
-          {/* Event Switcher */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 font-medium">Tukar Acara:</span>
-            <select
-              value={selectedEventId}
-              onChange={(e) => setSelectedEventId(e.target.value)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-blue-600 cursor-pointer"
-            >
-              {EVENTS_DATA.map((ev) => (
-                <option key={ev.id} value={ev.id}>
-                  {ev.title}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Event Quick Intel Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs">
-          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-            <span className="font-bold text-slate-500 text-[11px] block">Ketua Penasihat & Talian</span>
-            <div className="font-extrabold text-slate-900 text-sm">{activeEvent.leadAdvisor}</div>
-            <a
-              href={activeEvent.leadAdvisorWhatsApp || `https://wasap.my/${activeEvent.leadAdvisorPhone}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-emerald-700 hover:text-emerald-800 font-bold inline-flex items-center gap-1 mt-1 text-[11px]"
-            >
-              <PhoneCall className="w-3 h-3" />
-              <span>Hubungi di WhatsApp</span>
-            </a>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-            <span className="font-bold text-slate-500 text-[11px] block">Venue & Tarikh Pentas</span>
-            <div className="font-extrabold text-slate-900">{activeEvent.venue}</div>
-            <div className="text-blue-700 font-medium">{activeEvent.dateStr}</div>
-          </div>
-
-          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-            <span className="font-bold text-slate-500 text-[11px] block">Kuota & Syarat Penyertaan</span>
-            <div className="font-extrabold text-slate-900">{activeEvent.participantsCount}</div>
-            <div className="text-slate-600 truncate">{activeEvent.theme}</div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onNavigateTab('calculator')}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <Calculator className="w-3.5 h-3.5 text-blue-600" />
-              <span>Lihat Rubrik Skor {activeEvent.title}</span>
-            </button>
+        ) : (
+          // SES Empty State if no specific event assigned
+          <div className="p-6 text-center bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs text-slate-600">
+            <p>
+              Tiada acara khusus ditugaskan kepada profil anda (Peranan: <strong>{currentUser.title}</strong>).
+            </p>
             <button
               onClick={() => onNavigateTab('events')}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs hover:bg-blue-700 transition-colors cursor-pointer inline-flex items-center gap-1.5"
             >
-              <FileText className="w-3.5 h-3.5 text-blue-600" />
-              <span>Garis Panduan Rasmi Penuh</span>
-            </button>
-          </div>
-
-          {onOpenAdminWorkspace && (
-            <button
-              onClick={() => onOpenAdminWorkspace('phases')}
-              className="text-xs font-extrabold text-blue-700 hover:text-blue-900 underline cursor-pointer flex items-center gap-1"
-            >
-              <span>Buka Kawalan Workspace</span>
+              <span>Lihat 5 Acara Kontinjen</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
-          )}
-        </div>
-      </div>
-
-      {/* 6. EMERGENCY CONTACTS DIRECTORY */}
-      <div className="bg-slate-900 rounded-3xl p-5 sm:p-6 text-white shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-amber-400">
-            <PhoneCall className="w-4 h-4" />
-            <h5 className="font-black text-xs uppercase tracking-wider">Talian Kecemasan & Pegawai Pengiring</h5>
           </div>
-          <span className="text-[11px] text-slate-400">Kontinjen KPMBP SOAR 2026</span>
+        )}
+      </section>
+
+      {/* =========================================================================
+          4. NEXT IMPORTANT DATES (SETERUSNYA)
+         ========================================================================= */}
+      <section className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
+        <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-blue-600" />
+            <h2 className="text-sm sm:text-base font-black text-slate-900 font-display">
+              Seterusnya (Next)
+            </h2>
+          </div>
+          <button
+            onClick={() => onNavigateTab('schedule')}
+            className="text-xs font-bold text-blue-600 hover:underline cursor-pointer"
+          >
+            Lihat Jadual Penuh 4 Hari &rarr;
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
-            <div>
-              <span className="font-extrabold text-white block">Muzlinda</span>
-              <span className="text-[10px] text-slate-400">Teater & Pengiring (019-2046144)</span>
-            </div>
-            <a
-              href="https://wasap.my/60192046144"
-              target="_blank"
-              rel="noreferrer"
-              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[10px]"
-            >
-              WhatsApp
-            </a>
+        {upcomingMilestones.length === 0 ? (
+          <div className="p-6 text-center bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-500">
+            Tiada jadual khusus untuk anda buat masa ini.
           </div>
+        ) : (
+          <div className="space-y-2">
+            {upcomingMilestones.map((item, idx) => (
+              <div
+                key={idx}
+                className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+              >
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                      {item.tag}
+                    </span>
+                    <span className="font-extrabold text-blue-900 font-mono">
+                      {item.date}
+                    </span>
+                  </div>
+                  <div className="font-bold text-slate-900 text-xs sm:text-sm">
+                    {item.title}
+                  </div>
+                </div>
 
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
-            <div>
-              <span className="font-extrabold text-white block">Khairi</span>
-              <span className="text-[10px] text-slate-400">Muzik & Duo (014-5313756)</span>
-            </div>
-            <a
-              href="https://wasap.my/60145313756"
-              target="_blank"
-              rel="noreferrer"
-              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[10px]"
-            >
-              WhatsApp
-            </a>
+                <div className="text-slate-500 text-[11px] sm:text-right shrink-0">
+                  {item.venue}
+                </div>
+              </div>
+            ))}
           </div>
+        )}
+      </section>
 
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
-            <div>
-              <span className="font-extrabold text-white block">Halimatul</span>
-              <span className="text-[10px] text-slate-400">Street Dakwah (017-7804852)</span>
-            </div>
-            <a
-              href="https://wasap.my/60177804852"
-              target="_blank"
-              rel="noreferrer"
-              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[10px]"
-            >
-              WhatsApp
-            </a>
+      {/* =========================================================================
+          5. REFERENCE & WORKSPACE (TERTIARY / ACCESSIBLE ON DEMAND)
+         ========================================================================= */}
+      <section className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+          <div className="flex items-center gap-2">
+            <Compass className="w-4 h-4 text-blue-600" />
+            <h2 className="text-sm sm:text-base font-black text-slate-900 font-display">
+              Pautan Rujukan & Profil
+            </h2>
           </div>
         </div>
-      </div>
 
-      {/* 7. CONTINGENT ETHICS & PLEDGE */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 rounded-3xl p-5 sm:p-6 text-white shadow-md border border-indigo-800/30 space-y-3">
-        <div className="flex items-center gap-2 text-amber-400">
-          <Sparkles className="w-4 h-4 text-amber-300" />
-          <h5 className="font-black text-xs uppercase tracking-wider">Ikrar & Disiplin Kontinjen KPM Bandar Penawar</h5>
+        {/* 4 Clean Quick Jumps */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+          <button
+            onClick={() => onNavigateTab('guidelines')}
+            className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-colors cursor-pointer space-y-1"
+          >
+            <FileText className="w-4 h-4 text-blue-600" />
+            <div className="font-bold text-slate-900">Dokumen & Syarat</div>
+            <div className="text-[10px] text-slate-500">Peraturan & Etika Rasmi</div>
+          </button>
+
+          <button
+            onClick={() => onNavigateTab('contact')}
+            className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-colors cursor-pointer space-y-1"
+          >
+            <PhoneCall className="w-4 h-4 text-emerald-600" />
+            <div className="font-bold text-slate-900">Direktori Pegawai</div>
+            <div className="text-[10px] text-slate-500">WhatsApp Penasihat & PIC</div>
+          </button>
+
+          <button
+            onClick={() => onNavigateTab('schedule')}
+            className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-colors cursor-pointer space-y-1"
+          >
+            <Clock className="w-4 h-4 text-amber-600" />
+            <div className="font-bold text-slate-900">Jadual & Deadlines</div>
+            <div className="text-[10px] text-slate-500">Tentatif Penuh KMB & JKKN</div>
+          </button>
+
+          <button
+            onClick={() => onNavigateTab('events')}
+            className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-colors cursor-pointer space-y-1"
+          >
+            <Layers className="w-4 h-4 text-purple-600" />
+            <div className="font-bold text-slate-900">5 Acara Kontinjen</div>
+            <div className="text-[10px] text-slate-500">Syarat & Format Pentas</div>
+          </button>
         </div>
-        <p className="text-xs sm:text-sm text-slate-200 leading-relaxed italic border-l-2 border-amber-400/60 pl-3">
-          "Kami warga Kontinjen KPM Bandar Penawar berikrar akan sentiasa menjaga disiplin, menjulang adab dan sahsiah terpuji, menepati masa dalam setiap fasa operasi, serta mempersembahkan mutu karya seni dakwah terbaik demi mengharumkan nama kolej di pentas SOAR IPMA 2026."
-        </p>
-      </div>
+
+        {/* Profile Details & Session Sign Out */}
+        <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-slate-400" />
+            <span>Sesi Log Masuk: <strong className="text-slate-900">{currentUser.name}</strong> ({currentUser.badge})</span>
+          </div>
+
+          <button
+            onClick={() => {
+              if (onOpenRoleSelector) {
+                onOpenRoleSelector();
+              } else if (onOpenAdminWorkspace) {
+                onOpenAdminWorkspace('access');
+              }
+            }}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:underline cursor-pointer"
+          >
+            <span>Tukar Peranan / Kemaskini Sesi</span>
+          </button>
+        </div>
+      </section>
 
     </div>
   );
