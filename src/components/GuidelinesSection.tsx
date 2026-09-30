@@ -273,8 +273,9 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Header Card */}
+    <section className="py-10 sm:py-12 pb-24 bg-slate-50 text-slate-900 min-h-[600px]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        {/* Top Header Card */}
       <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-blue-900/50 relative overflow-hidden">
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -708,20 +709,20 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               {section.submissionDeadlines.map((dl, dlIdx) => (
-                                <div key={dlIdx} className="bg-white border border-amber-200 rounded-lg p-3 text-xs space-y-1">
-                                  <div className="flex items-center justify-between font-extrabold text-slate-900">
-                                    <span>{dl.item}</span>
-                                    <span className="bg-amber-100 text-amber-900 text-[10px] px-2 py-0.5 rounded font-black">
-                                      {dl.date}
-                                    </span>
+                                <div key={dlIdx} className="bg-white border border-amber-200 rounded-lg p-3 text-xs space-y-1.5">
+                                  <div className="flex items-start justify-between gap-2 font-extrabold text-slate-900">
+                                    <span className="flex-1 min-w-0">{dl.item}</span>
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                      <span className="bg-amber-100 text-amber-900 text-[10px] px-2 py-0.5 rounded font-black">
+                                        {dl.date}
+                                      </span>
+                                      {dl.penaltyIfLate && (
+                                        <PenaltyIconTooltip penaltyText={dl.penaltyIfLate} label="Penalti Kelewatan" align="right" />
+                                      )}
+                                    </div>
                                   </div>
                                   {dl.time && <div className="text-[11px] font-bold text-amber-800">Waktu Tutup: {dl.time}</div>}
                                   <div className="text-slate-600 text-[11px]">Saluran: <strong>{dl.submissionChannel}</strong></div>
-                                  {dl.penaltyIfLate && (
-                                    <div className="pt-1 flex items-center gap-1.5">
-                                      <PenaltyIconTooltip penaltyText={dl.penaltyIfLate} label="Penalti Kelewatan" />
-                                    </div>
-                                  )}
                                 </div>
                               ))}
                             </div>
@@ -767,11 +768,8 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
                                     </h4>
                                   </div>
 
-                                  {/* Top Right Action Buttons: Penalty Icon + Salin Petikan */}
-                                  <div className="flex items-center gap-2 shrink-0">
-                                    {clause.penaltyNote && (
-                                      <PenaltyIconTooltip penaltyText={clause.penaltyNote} align="right" />
-                                    )}
+                                  {/* Top Right Action Buttons: Salin Petikan + Penalty Icon at the far right */}
+                                  <div className="flex items-center gap-2 shrink-0 ml-auto">
                                     <button
                                       onClick={() => handleCopyClause(clause, section.sectionTitle, section.officialDocumentRef, section.documentVersion)}
                                       className="text-xs font-bold text-slate-500 hover:text-blue-700 bg-slate-50 hover:bg-blue-50 px-2.5 py-1 rounded-lg border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
@@ -789,6 +787,9 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
                                         </>
                                       )}
                                     </button>
+                                    {clause.penaltyNote && (
+                                      <PenaltyIconTooltip penaltyText={clause.penaltyNote} align="right" />
+                                    )}
                                   </div>
                                 </div>
 
@@ -1009,14 +1010,19 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
                 className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-sm hover:border-amber-400 transition-all flex flex-col justify-between"
               >
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">
                       {dlObj.targetEvent}
                     </span>
-                    <span className="text-xs font-black text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-amber-700" />
-                      {dlObj.deadline.date}
-                    </span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-xs font-black text-amber-900 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300 flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-amber-700" />
+                        {dlObj.deadline.date}
+                      </span>
+                      {dlObj.deadline.penaltyIfLate && (
+                        <PenaltyIconTooltip penaltyText={dlObj.deadline.penaltyIfLate} label="Penalti Kelewatan" align="right" />
+                      )}
+                    </div>
                   </div>
 
                   <h4 className="font-display text-sm sm:text-base font-extrabold text-slate-900">
@@ -1036,13 +1042,6 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
                     </div>
                   </div>
                 </div>
-
-                {dlObj.deadline.penaltyIfLate && (
-                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600">
-                    <span className="font-semibold text-rose-800">Penalti Kelewatan:</span>
-                    <PenaltyIconTooltip penaltyText={dlObj.deadline.penaltyIfLate} label="Penalti Kelewatan" />
-                  </div>
-                )}
               </div>
             ))}
           </div>
@@ -1117,6 +1116,7 @@ export const GuidelinesSection: React.FC<GuidelinesSectionProps> = ({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </section>
   );
 };

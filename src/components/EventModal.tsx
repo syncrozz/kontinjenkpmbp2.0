@@ -289,7 +289,7 @@ export const EventModal: React.FC<EventModalProps> = ({ event, onClose, onOpenCa
                           <span className="font-bold text-slate-900 text-xs sm:text-sm">{clause.heading}</span>
                         </div>
                         {clause.penaltyNote && (
-                          <div className="shrink-0">
+                          <div className="shrink-0 ml-auto">
                             <PenaltyIconTooltip penaltyText={clause.penaltyNote} align="right" />
                           </div>
                         )}
@@ -319,20 +319,19 @@ export const EventModal: React.FC<EventModalProps> = ({ event, onClose, onOpenCa
                 <div className="space-y-2.5">
                   {matchingDocItem.submissionDeadlines.map((dl, idx) => (
                     <div key={idx} className="bg-amber-50/70 border border-amber-200 rounded-xl p-3.5 space-y-1.5 text-xs">
-                      <div className="flex items-center justify-between font-bold text-slate-900">
-                        <span>{dl.item}</span>
-                        <span className="bg-amber-200 text-amber-950 text-[10px] px-2 py-0.5 rounded font-black">
-                          {dl.date}
-                        </span>
+                      <div className="flex items-start justify-between gap-2 font-bold text-slate-900">
+                        <span className="flex-1 min-w-0">{dl.item}</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="bg-amber-200 text-amber-950 text-[10px] px-2 py-0.5 rounded font-black">
+                            {dl.date}
+                          </span>
+                          {dl.penaltyIfLate && (
+                            <PenaltyIconTooltip penaltyText={dl.penaltyIfLate} label="Penalti Kelewatan" align="right" />
+                          )}
+                        </div>
                       </div>
                       {dl.time && <div className="text-[11px] font-semibold text-amber-800">Waktu Tutup: {dl.time}</div>}
                       <div className="text-slate-600 text-[11px]">Saluran: <strong>{dl.submissionChannel}</strong></div>
-                      {dl.penaltyIfLate && (
-                        <div className="pt-1 flex items-center justify-between">
-                          <span className="text-[11px] text-slate-500">Penalti Kelewatan:</span>
-                          <PenaltyIconTooltip penaltyText={dl.penaltyIfLate} label="Penalti Kelewatan" />
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
